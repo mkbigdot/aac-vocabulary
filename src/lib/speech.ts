@@ -14,10 +14,18 @@ export function onVoicesChanged(handler: () => void): () => void {
   return () => synth.removeEventListener('voiceschanged', handler);
 }
 
+/**
+ * Some voices read a lone "I" as the letter name ("capital I"), so the pronoun is respelled
+ * phonetically when it is spoken on its own.
+ */
+function pronounce(text: string): string {
+  return /^i[.!?]?$/i.test(text.trim()) ? 'eye' : text;
+}
+
 export function speak(text: string, settings: Settings): void {
   if (!synth || !text.trim()) return;
   synth.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
+  const utterance = new SpeechSynthesisUtterance(pronounce(text));
   const voice = settings.voiceURI ? listVoices().find((v) => v.voiceURI === settings.voiceURI) : undefined;
   if (voice) {
     utterance.voice = voice;
