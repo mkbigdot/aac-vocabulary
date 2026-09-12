@@ -43,7 +43,7 @@ export function SettingsPanel({ settings, onChange, onClose, onExport, onImport,
       <label>
         Voice
         <select value={settings.voiceURI ?? ''} onChange={(event) => set('voiceURI', event.target.value || null)}>
-          <option value="">Best match (Indian English boy)</option>
+          <option value="">Device default</option>
           {sortedVoices(voices).map((voice) => (
             <option key={voice.voiceURI} value={voice.voiceURI}>
               {voice.name} ({voice.lang})

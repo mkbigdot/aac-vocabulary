@@ -53,10 +53,7 @@ export function speak(text: string, settings: Settings): void {
   if (!synth || !text.trim()) return;
   synth.cancel();
   const utterance = new SpeechSynthesisUtterance(pronounce(text));
-  const voices = listVoices();
-  const voice = settings.voiceURI
-    ? voices.find((v) => v.voiceURI === settings.voiceURI)
-    : pickIndianBoyVoice(voices);
+  const voice = settings.voiceURI ? listVoices().find((v) => v.voiceURI === settings.voiceURI) : undefined;
   if (voice) {
     utterance.voice = voice;
     utterance.lang = voice.lang;
