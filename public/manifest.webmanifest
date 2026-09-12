@@ -1,0 +1,19 @@
+{
+  "name": "Talk Board — AAC Vocabulary",
+  "short_name": "Talk Board",
+  "description": "A full vocabulary AAC communication board that speaks aloud and works offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#f4f6fa",
+  "theme_color": "#1f6feb",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

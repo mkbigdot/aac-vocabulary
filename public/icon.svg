@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Talk Board">
+  <rect width="512" height="512" rx="96" fill="#1f6feb" />
+  <g fill="#ffffff">
+    <rect x="88" y="112" width="336" height="192" rx="28" />
+  </g>
+  <g fill="#1f6feb">
+    <rect x="120" y="144" width="80" height="56" rx="12" />
+    <rect x="216" y="144" width="80" height="56" rx="12" />
+    <rect x="312" y="144" width="80" height="56" rx="12" />
+    <rect x="120" y="216" width="80" height="56" rx="12" />
+    <rect x="216" y="216" width="80" height="56" rx="12" />
+    <rect x="312" y="216" width="80" height="56" rx="12" />
+  </g>
+  <path d="M176 304l0 72 72-72z" fill="#ffffff" />
+  <path
+    d="M336 344c24 0 44 20 44 44s-20 44-44 44-44-20-44-44 20-44 44-44z"
+    fill="#ffd166"
+  />
+</svg>
