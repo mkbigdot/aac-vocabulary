@@ -107,6 +107,15 @@ export function SettingsPanel({ settings, onChange, onClose, onExport, onImport,
       <label className="checkbox">
         <input
           type="checkbox"
+          checked={settings.autoGrammar}
+          onChange={(event) => set('autoGrammar', event.target.checked)}
+        />
+        Fix grammar when speaking
+      </label>
+
+      <label className="checkbox">
+        <input
+          type="checkbox"
           checked={settings.showLabels}
           onChange={(event) => set('showLabels', event.target.checked)}
         />

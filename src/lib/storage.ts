@@ -9,6 +9,7 @@ export const defaultSettings: Settings = {
   volume: 1,
   columns: 12,
   speakOnTap: true,
+  autoGrammar: true,
   showLabels: true,
   highContrast: false,
   colorByPartOfSpeech: true,

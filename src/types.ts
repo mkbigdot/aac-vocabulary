@@ -39,6 +39,7 @@ export interface Settings {
   volume: number;
   columns: number;
   speakOnTap: boolean;
+  autoGrammar: boolean;
   showLabels: boolean;
   highContrast: boolean;
   colorByPartOfSpeech: boolean;

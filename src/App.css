@@ -48,6 +48,13 @@
   font-size: 1.6rem;
 }
 
+.sentence-preview {
+  flex-basis: 100%;
+  font-size: 1.1rem;
+  font-style: italic;
+  opacity: 0.75;
+}
+
 .sentence-actions {
   display: flex;
   gap: 6px;

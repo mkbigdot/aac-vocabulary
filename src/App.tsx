@@ -8,6 +8,7 @@ import { SpellPanel } from './components/SpellPanel';
 import { WordEditor } from './components/WordEditor';
 import { defaultCategories } from './data/categories';
 import { CORE_COLUMNS, coreWords } from './data/core';
+import { correctSentence } from './lib/grammar';
 import { applyEnding, type Ending } from './lib/morphology';
 import { speak, speechSupported, stopSpeaking } from './lib/speech';
 import { emptyState, exportState, importState, loadState, saveState, type PersistedState } from './lib/storage';
@@ -67,7 +68,8 @@ export default function App() {
 
   const activeCategory = view.kind === 'category' ? categories.find((c) => c.id === view.id) : undefined;
 
-  const sentenceText = sentence.map((item) => item.form ?? item.word.speak ?? item.word.label).join(' ');
+  const plainText = sentence.map((item) => item.form ?? item.word.speak ?? item.word.label).join(' ');
+  const spokenText = settings.autoGrammar ? correctSentence(sentence) : plainText;
 
   const speakText = (text: string) => speak(text, settings);
 
@@ -147,7 +149,8 @@ export default function App() {
     <div className="app">
       <SentenceBar
         items={sentence}
-        onSpeak={() => speakText(sentenceText)}
+        preview={sentence.length > 0 && spokenText !== plainText ? spokenText : ''}
+        onSpeak={() => speakText(spokenText)}
         onBackspace={() => setSentence((current) => current.slice(0, -1))}
         onClear={() => {
           stopSpeaking();

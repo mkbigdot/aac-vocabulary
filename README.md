@@ -13,6 +13,11 @@ and keeps working offline.
   quick phrases and more), several hundred words in total.
 - **Speech** — the sentence bar speaks the whole message; each button can also speak on tap
   (Web Speech API, with voice / speed / pitch / volume settings).
+- **Speaks proper sentences** — tapped words are tidied before they are spoken: subject-verb
+  agreement (`he eat → he eats`, `I is → I am`), progressive forms after *to be* (`I am go → I am
+  going`), do-support for negatives (`he not like → he doesn't like`), `a/an`, capitals and a full
+  stop or question mark. The tidied sentence is shown under the symbols, and can be switched off in
+  settings.
 - **Grammar endings** — `+s`, `+ing`, `+ed`, `+en`, `+er`, `+est` are applied to the last word with
   proper irregular forms (`go → went`, `good → better`, `foot → feet`).
 - **Spelling keyboard** — type anything not on the board and add it to the sentence.
@@ -37,6 +42,7 @@ Other scripts:
 
 ```bash
 npm run lint       # ESLint
+npm test           # Vitest unit tests (grammar + word endings)
 npm run typecheck  # TypeScript
 npm run build      # production build into dist/
 npm run preview    # serve the production build
