@@ -10,6 +10,8 @@ import { defaultCategories } from './data/categories';
 import { CORE_COLUMNS, coreWords } from './data/core';
 import { correctSentence } from './lib/grammar';
 import { applyEnding, type Ending } from './lib/morphology';
+import { moveInOrder, sortByOrder } from './lib/order';
+import { useDragReorder } from './lib/useDragReorder';
 import { speak, speechSupported, stopSpeaking } from './lib/speech';
 import { emptyState, exportState, importState, loadState, saveState, type PersistedState } from './lib/storage';
 import type { Category, PartOfSpeech, SentenceItem, Word } from './types';
@@ -40,15 +42,21 @@ export default function App() {
     const hidden = new Set(state.hiddenWordIds);
     const withCustom = (category: Category): Category => ({
       ...category,
-      words: [...category.words, ...(state.customWords[category.id] ?? [])].filter((word) => !hidden.has(word.id)),
+      words: sortByOrder(
+        [...category.words, ...(state.customWords[category.id] ?? [])].filter((word) => !hidden.has(word.id)),
+        state.wordOrder[category.id],
+      ),
     });
-    return [...defaultCategories, ...state.customCategories].map(withCustom);
-  }, [state.customCategories, state.customWords, state.hiddenWordIds]);
+    return sortByOrder([...defaultCategories, ...state.customCategories], state.categoryOrder).map(withCustom);
+  }, [state.categoryOrder, state.customCategories, state.customWords, state.hiddenWordIds, state.wordOrder]);
 
   const core: Word[] = useMemo(() => {
     const hidden = new Set(state.hiddenWordIds);
-    return [...coreWords, ...(state.customWords[CORE_ID] ?? [])].filter((word) => !hidden.has(word.id));
-  }, [state.customWords, state.hiddenWordIds]);
+    return sortByOrder(
+      [...coreWords, ...(state.customWords[CORE_ID] ?? [])].filter((word) => !hidden.has(word.id)),
+      state.wordOrder[CORE_ID],
+    );
+  }, [state.customWords, state.hiddenWordIds, state.wordOrder]);
 
   const allWords: Word[] = useMemo(
     () => [...core, ...categories.flatMap((category) => category.words)],
@@ -135,6 +143,31 @@ export default function App() {
 
   const currentCategoryId = view.kind === 'category' ? view.id : CORE_ID;
 
+  const reorderCategories = (fromId: string, toId: string) =>
+    setState((current) => ({
+      ...current,
+      categoryOrder: moveInOrder(
+        categories.map((category) => category.id),
+        fromId,
+        toId,
+      ),
+    }));
+
+  const categoryDrag = useDragReorder(editMode, 'category-id', reorderCategories);
+
+  const reorderWords = (fromId: string, toId: string) =>
+    setState((current) => ({
+      ...current,
+      wordOrder: {
+        ...current.wordOrder,
+        [currentCategoryId]: moveInOrder(
+          boardWords.map((word) => word.id),
+          fromId,
+          toId,
+        ),
+      },
+    }));
+
   const boardWords = query.trim()
     ? searchResults
     : view.kind === 'core'
@@ -184,8 +217,16 @@ export default function App() {
           <button
             key={category.id}
             type="button"
-            className={view.kind === 'category' && view.id === category.id ? 'active' : ''}
+            className={[
+              view.kind === 'category' && view.id === category.id ? 'active' : '',
+              categoryDrag.dragId === category.id ? 'dragging' : '',
+              categoryDrag.dragId && categoryDrag.overId === category.id ? 'over' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            {...categoryDrag.handlers(category.id)}
             onClick={() => {
+              if (editMode && categoryDrag.wasDragged()) return;
               setQuery('');
               setView({ kind: 'category', id: category.id });
             }}
@@ -210,7 +251,12 @@ export default function App() {
           placeholder="Search all words…"
           onChange={(event) => setQuery(event.target.value)}
         />
-        <button type="button" className={editMode ? 'active' : ''} onClick={() => setEditMode((on) => !on)}>
+        <button
+          type="button"
+          className={editMode ? 'active' : ''}
+          title="Add, edit or drag buttons and tabs into the order you want"
+          onClick={() => setEditMode((on) => !on)}
+        >
           ✏️ Edit
         </button>
         <button type="button" onClick={() => setSettingsOpen(true)}>
@@ -242,6 +288,7 @@ export default function App() {
             onEdit={(word) => setEditing({ categoryId: currentCategoryId, word })}
             onRemove={(word) => removeWord(currentCategoryId, word)}
             onAdd={() => setEditing({ categoryId: currentCategoryId, word: null })}
+            onReorder={view.kind === 'core' || view.kind === 'category' ? reorderWords : undefined}
           />
         )}
         {boardWords.length === 0 && view.kind !== 'spell' && (

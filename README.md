@@ -22,7 +22,8 @@ and keeps working offline.
   proper irregular forms (`go → went`, `good → better`, `foot → feet`).
 - **Spelling keyboard** — type anything not on the board and add it to the sentence.
 - **Search** — find any word across every category.
-- **Personalisation** — edit mode to add, edit, hide or delete words per category; recent words view;
+- **Personalisation** — edit mode to add, edit, hide, delete or drag words into any position, and to
+  drag the category tabs into the order you want; recent words view;
   adjustable grid size, label visibility, colour coding and high-contrast mode.
 - **Backup** — export/import the whole personalised vocabulary as a JSON file.
 - **Offline** — service worker caches the app; everything is stored locally in the browser.
@@ -60,7 +61,9 @@ publishes `main` to GitHub Pages once Pages is enabled for the repository
 1. Open the deployed URL in the tablet browser.
 2. Use the browser menu → *Add to Home Screen* to install it as a full-screen app.
 3. Open Settings (⚙️) to pick a voice, set the speaking speed and choose how many buttons fit per row.
-4. Use Edit (✏️) to add personal words — names, favourite foods, school staff, motivators.
+4. Use Edit (✏️) to add personal words — names, favourite foods, school staff, motivators — and to drag
+   buttons or category tabs (Home, School, Gadgets…) into the positions that suit your child. The
+   arrangement is saved on the device.
 
 Vocabulary and settings are stored on the device; export a backup from Settings before switching
 devices.

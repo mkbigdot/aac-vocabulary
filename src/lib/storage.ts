@@ -25,6 +25,10 @@ export interface PersistedState {
   hiddenWordIds: string[];
   /** Ids of the most recently used words, most recent first. */
   recentWordIds: string[];
+  /** User-chosen button order per board, keyed by category id ('core' for the core board). */
+  wordOrder: Record<string, string[]>;
+  /** User-chosen order of the category tabs. */
+  categoryOrder: string[];
 }
 
 export const emptyState: PersistedState = {
@@ -33,6 +37,8 @@ export const emptyState: PersistedState = {
   customCategories: [],
   hiddenWordIds: [],
   recentWordIds: [],
+  wordOrder: {},
+  categoryOrder: [],
 };
 
 export function loadState(): PersistedState {
@@ -46,6 +52,8 @@ export function loadState(): PersistedState {
       customCategories: parsed.customCategories ?? [],
       hiddenWordIds: parsed.hiddenWordIds ?? [],
       recentWordIds: parsed.recentWordIds ?? [],
+      wordOrder: parsed.wordOrder ?? {},
+      categoryOrder: parsed.categoryOrder ?? [],
     };
   } catch {
     return emptyState;
@@ -72,5 +80,7 @@ export function importState(json: string): PersistedState {
     customCategories: parsed.customCategories ?? [],
     hiddenWordIds: parsed.hiddenWordIds ?? [],
     recentWordIds: parsed.recentWordIds ?? [],
+    wordOrder: parsed.wordOrder ?? {},
+    categoryOrder: parsed.categoryOrder ?? [],
   };
 }

@@ -6,12 +6,25 @@ interface Props {
   settings: Settings;
   categoryColor?: string;
   editMode: boolean;
+  /** Pointer handlers that let the button be dragged to a new position in edit mode. */
+  dragHandlers?: Record<string, unknown>;
+  dragState?: 'dragging' | 'over';
   onSelect: (word: Word) => void;
   onEdit: (word: Word) => void;
   onRemove: (word: Word) => void;
 }
 
-export function WordButton({ word, settings, categoryColor, editMode, onSelect, onEdit, onRemove }: Props) {
+export function WordButton({
+  word,
+  settings,
+  categoryColor,
+  editMode,
+  dragHandlers,
+  dragState,
+  onSelect,
+  onEdit,
+  onRemove,
+}: Props) {
   const background = settings.highContrast
     ? '#000'
     : settings.colorByPartOfSpeech
@@ -19,7 +32,7 @@ export function WordButton({ word, settings, categoryColor, editMode, onSelect, 
       : (categoryColor ?? '#fff');
 
   return (
-    <div className="cell">
+    <div className={`cell${dragState ? ` ${dragState}` : ''}`} {...dragHandlers}>
       <button
         type="button"
         className="word-button"
