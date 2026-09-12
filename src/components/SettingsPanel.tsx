@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Settings } from '../types';
-import { listVoices, onVoicesChanged, speak } from '../lib/speech';
+import { listVoices, onVoicesChanged, pickIndianBoyVoice, sortedVoices, speak } from '../lib/speech';
 
 interface Props {
   settings: Settings;
@@ -22,6 +22,15 @@ export function SettingsPanel({ settings, onChange, onClose, onExport, onImport,
 
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => onChange({ ...settings, [key]: value });
 
+  /** Indian English voice, raised pitch and a calmer speed for a young boy. */
+  const useIndianBoyVoice = () =>
+    onChange({
+      ...settings,
+      voiceURI: pickIndianBoyVoice(voices)?.voiceURI ?? null,
+      pitch: 1.4,
+      rate: 0.9,
+    });
+
   return (
     <aside className="settings-panel" aria-label="Settings">
       <header>
@@ -34,8 +43,8 @@ export function SettingsPanel({ settings, onChange, onClose, onExport, onImport,
       <label>
         Voice
         <select value={settings.voiceURI ?? ''} onChange={(event) => set('voiceURI', event.target.value || null)}>
-          <option value="">Device default</option>
-          {voices.map((voice) => (
+          <option value="">Best match (Indian English boy)</option>
+          {sortedVoices(voices).map((voice) => (
             <option key={voice.voiceURI} value={voice.voiceURI}>
               {voice.name} ({voice.lang})
             </option>
@@ -78,6 +87,10 @@ export function SettingsPanel({ settings, onChange, onClose, onExport, onImport,
           onChange={(event) => set('volume', Number(event.target.value))}
         />
       </label>
+
+      <button type="button" onClick={useIndianBoyVoice}>
+        🧒 Indian boy voice
+      </button>
 
       <button type="button" onClick={() => speak('Hello, this is my voice.', settings)}>
         🔊 Test voice

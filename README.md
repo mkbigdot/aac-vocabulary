@@ -61,6 +61,9 @@ publishes `main` to GitHub Pages once Pages is enabled for the repository
 1. Open the deployed URL in the tablet browser.
 2. Use the browser menu → *Add to Home Screen* to install it as a full-screen app.
 3. Open Settings (⚙️) to pick a voice, set the speaking speed and choose how many buttons fit per row.
+   The app picks an Indian English voice by default, and the "🧒 Indian boy voice" button sets a
+   child-like pitch and a calmer speed. On iOS download the voice once in
+   Settings → Accessibility → Spoken Content → Voices → English → English (India).
 4. Use Edit (✏️) to add personal words — names, favourite foods, school staff, motivators — and to drag
    buttons or category tabs (Home, School, Gadgets…) into the positions that suit your child. The
    arrangement is saved on the device.
