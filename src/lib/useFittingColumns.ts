@@ -1,31 +1,56 @@
 import { useEffect, useState } from 'react';
 
-/** Smallest comfortable touch target for a child, in CSS pixels. */
-const MIN_BUTTON = 78;
 const GAP = 5;
+const PADDING = 12;
 
-function fit(requested: number, width: number): number {
-  const possible = Math.max(3, Math.floor((width - 12 + GAP) / (MIN_BUTTON + GAP)));
+/**
+ * Smallest comfortable touch target for the current device: bigger on a phone so labels stay
+ * readable, smaller when the screen is short (phone in landscape) so rows still fit.
+ */
+function minButton(width: number, height: number): number {
+  if (height < 520) return 64;
+  if (width < 480) return 76;
+  if (width < 900) return 84;
+  return 92;
+}
+
+/** Buttons that fit across a screen of this size, never more than `requested`. */
+export function columnsFor(requested: number, width: number, height: number): number {
+  const possible = Math.max(2, Math.floor((width - PADDING + GAP) / (minButton(width, height) + GAP)));
   return Math.min(requested, possible);
 }
 
+function viewport(): { width: number; height: number } {
+  if (typeof window === 'undefined') return { width: 1024, height: 768 };
+  return {
+    width: window.visualViewport?.width ?? window.innerWidth,
+    height: window.visualViewport?.height ?? window.innerHeight,
+  };
+}
+
 /**
- * Caps the number of buttons per row so they never shrink below a tappable size;
- * on a phone this turns a 12-column board into a few large buttons per row.
+ * Buttons per row for the device in use: the requested number is capped so buttons never shrink
+ * below a tappable size, and it is recalculated when the window is resized or the device rotated.
  */
 export function useFittingColumns(requested: number): number {
-  const [columns, setColumns] = useState(() =>
-    fit(requested, typeof window === 'undefined' ? 1024 : window.innerWidth),
-  );
+  const [columns, setColumns] = useState(() => {
+    const { width, height } = viewport();
+    return columnsFor(requested, width, height);
+  });
 
   useEffect(() => {
-    const update = () => setColumns(fit(requested, window.innerWidth));
+    const update = () => {
+      const { width, height } = viewport();
+      setColumns(columnsFor(requested, width, height));
+    };
     update();
     window.addEventListener('resize', update);
     window.addEventListener('orientationchange', update);
+    window.visualViewport?.addEventListener('resize', update);
     return () => {
       window.removeEventListener('resize', update);
       window.removeEventListener('orientationchange', update);
+      window.visualViewport?.removeEventListener('resize', update);
     };
   }, [requested]);
 

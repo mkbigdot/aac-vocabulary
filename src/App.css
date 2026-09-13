@@ -409,6 +409,27 @@ body.high-contrast .word-button {
   }
 }
 
+/* Short screens (phone in landscape): keep the board itself full height */
+@media (max-height: 520px) {
+  .sentence-strip {
+    min-height: 48px;
+  }
+
+  .sentence-actions .action {
+    width: 56px;
+    font-size: 1.4rem;
+  }
+
+  .ending-title {
+    display: none;
+  }
+
+  .nav-bar button,
+  .ending-button {
+    padding: 6px 10px;
+  }
+}
+
 /* Phones: fewer, bigger buttons filling the screen */
 @media (max-width: 560px) {
   .app {
