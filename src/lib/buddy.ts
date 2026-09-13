@@ -145,6 +145,22 @@ export function replyTo(prompt: BuddyPrompt, answer: string, name: string): stri
   return `${cheer} You said ${said}.`;
 }
 
+function words(text: string): string[] {
+  return text.toLowerCase().match(/[a-z']+/g) ?? [];
+}
+
+/**
+ * True when the microphone picked up the buddy's own voice from the speaker instead of the child:
+ * nearly every word heard was in the sentence the buddy just said.
+ */
+export function isEcho(heard: string, spoken: string): boolean {
+  const said = words(heard);
+  if (said.length === 0) return true;
+  const mine = new Set(words(spoken));
+  const overlap = said.filter((word) => mine.has(word)).length;
+  return said.length >= 3 && overlap / said.length >= 0.8;
+}
+
 /** The face the buddy shows while it is talking, listening or waiting. */
 export function buddyFace(mood: 'idle' | 'talking' | 'listening' | 'happy'): string {
   switch (mood) {

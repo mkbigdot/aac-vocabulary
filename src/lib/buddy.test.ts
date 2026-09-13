@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buddyFace, greeting, promptsFor, replyTo, timeOfDay } from './buddy';
+import { buddyFace, greeting, isEcho, promptsFor, replyTo, timeOfDay } from './buddy';
 
 describe('timeOfDay', () => {
   it('splits the day into four parts', () => {
@@ -52,6 +52,21 @@ describe('replyTo', () => {
 
   it('is patient with an empty answer', () => {
     expect(replyTo(feel, '  ', 'Arjun')).toBe('Take your time Arjun.');
+  });
+});
+
+describe('isEcho', () => {
+  const spoken = 'Good talking! You said yes. How do you feel today?';
+
+  it('ignores the buddy hearing itself through the speaker', () => {
+    expect(isEcho('how do you feel today', spoken)).toBe(true);
+    expect(isEcho('', spoken)).toBe(true);
+  });
+
+  it('keeps what the child actually says', () => {
+    expect(isEcho('i am happy', spoken)).toBe(false);
+    expect(isEcho('yes', spoken)).toBe(false);
+    expect(isEcho('i want my tablet please', spoken)).toBe(false);
   });
 });
 

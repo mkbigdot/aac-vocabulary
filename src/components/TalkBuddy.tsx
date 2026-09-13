@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { buddyFace, greeting, promptsFor, replyTo, timeOfDay, type BuddyPrompt } from '../lib/buddy';
+import { buddyFace, greeting, isEcho, promptsFor, replyTo, timeOfDay, type BuddyPrompt } from '../lib/buddy';
 import { listenOnce, listeningSupported } from '../lib/listen';
 import { speak, stopSpeaking } from '../lib/speech';
 import type { Settings } from '../types';
@@ -24,11 +24,14 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [mood, setMood] = useState<Mood>('idle');
   const stopListening = useRef<(() => void) | null>(null);
+  const lastSpoken = useRef('');
 
   const prompt = prompts[index % prompts.length];
 
   const say = useCallback(
     (text: string) => {
+      stopListening.current?.();
+      lastSpoken.current = text;
       setMood('talking');
       setTurns((current) => [...current, { who: 'buddy', text }]);
       speak(text, settings, () => setMood('idle'));
@@ -53,9 +56,11 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
   );
 
   const answer = (text: string) => {
+    stopListening.current?.();
     onAnswer(text);
     const next = (index + 1) % prompts.length;
     const reply = `${replyTo(prompt, text, name)} ${prompts[next].text}`;
+    lastSpoken.current = reply;
     setTurns((current) => [...current, { who: 'child', text }, { who: 'buddy', text: reply }]);
     setMood('happy');
     speak(reply, settings, () => setMood('idle'));
@@ -70,7 +75,10 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
     stopSpeaking();
     setMood('listening');
     stopListening.current = listenOnce(
-      (heard) => answer(heard),
+      (heard) => {
+        if (isEcho(heard, lastSpoken.current)) return;
+        answer(heard);
+      },
       () => setMood((current) => (current === 'listening' ? 'idle' : current)),
     );
   };
@@ -102,7 +110,12 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
           🔁 Ask again
         </button>
         {listeningSupported && (
-          <button type="button" className={mood === 'listening' ? 'active' : ''} onClick={listen}>
+          <button
+            type="button"
+            className={mood === 'listening' ? 'active' : ''}
+            disabled={mood === 'talking'}
+            onClick={listen}
+          >
             {mood === 'listening' ? '⏹️ Stop' : '🎤 Talk to me'}
           </button>
         )}
