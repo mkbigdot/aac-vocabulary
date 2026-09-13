@@ -54,7 +54,8 @@ export function speak(text: string, settings: Settings, onEnd?: () => void): voi
     onEnd?.();
     return;
   }
-  synth.cancel();
+  if (synth.speaking || synth.pending) synth.cancel();
+  if (synth.paused) synth.resume();
   const utterance = new SpeechSynthesisUtterance(pronounce(text));
   const voice = settings.voiceURI ? listVoices().find((v) => v.voiceURI === settings.voiceURI) : undefined;
   if (voice) {

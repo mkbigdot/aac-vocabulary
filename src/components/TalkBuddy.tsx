@@ -30,7 +30,6 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
   const [mood, setMood] = useState<Mood>('idle');
   const [muted, setMuted] = useState(false);
   const mutedNow = useRef(false);
-  const mutedByChoice = useRef(false);
   const stopListening = useRef<(() => void) | null>(null);
   const lastSpoken = useRef('');
   const pause = useRef<number | undefined>(undefined);
@@ -97,6 +96,8 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
       window.clearTimeout(pause.current);
       stopSpeaking();
       setMood((current) => (current === 'talking' ? 'idle' : current));
+    } else {
+      say([prompt.text]);
     }
   };
 
@@ -105,19 +106,15 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
       stopListening.current?.();
       return;
     }
-    mute(true);
     window.clearTimeout(pause.current);
+    stopSpeaking();
     setMood('listening');
     stopListening.current = listenOnce(
       (heard) => {
         if (isEcho(heard, lastSpoken.current)) return;
-        if (!mutedByChoice.current) mute(false);
         answer(heard);
       },
-      () => {
-        if (!mutedByChoice.current) mute(false);
-        setMood((current) => (current === 'listening' ? 'idle' : current));
-      },
+      () => setMood((current) => (current === 'listening' ? 'idle' : current)),
     );
   };
 
@@ -150,10 +147,7 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
         <button
           type="button"
           className={muted ? 'active' : ''}
-          onClick={() => {
-            mutedByChoice.current = !muted;
-            mute(!muted);
-          }}
+          onClick={() => mute(!muted)}
         >
           {muted ? '🔇 Muted' : '🔊 Voice on'}
         </button>
