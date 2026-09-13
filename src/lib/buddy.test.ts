@@ -78,10 +78,21 @@ describe('followUp', () => {
   });
 
   it('goes one step deeper and then lets a new topic start', () => {
+    const second = followUp(lunch, 'rice')!;
+    const third = followUp(second, 'yes')!;
+    expect(third.text).toBe('Who ate with you?');
+    expect(followUp(third, 'mum')).toBeNull();
+  });
+
+  it('never asks the same vague question again', () => {
     const second = followUp(colour, 'blue')!;
-    const third = followUp(second, 'toy')!;
-    expect(third.text).toBe('How did that feel?');
-    expect(followUp(third, 'happy')).toBeNull();
+    expect(followUp(second, 'toy')).toBeNull();
+  });
+
+  it('answers a follow up without repeating the words back', () => {
+    const second = followUp(lunch, 'rice')!;
+    expect(replyTo(second, 'yes', 'Arjun')).toBe('That is good.');
+    expect(replyTo(second, 'no', 'Arjun')).toBe('Okay, that is fine.');
   });
 
   it('does not push when there is nothing to answer', () => {

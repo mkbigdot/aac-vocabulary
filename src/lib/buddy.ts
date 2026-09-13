@@ -136,13 +136,15 @@ export function replyTo(prompt: BuddyPrompt, answer: string, name: string): stri
   if (!said) return `Take your time${who}.`;
   const no = negative(said);
   const yes = affirmative(said);
-  const base = prompt.id.replace(/\++$/, '');
 
-  if (prompt.id.endsWith('++')) {
-    return SAD.test(said) ? `I am sorry you felt ${said}.` : `I am happy you felt ${said}.`;
+  if (prompt.id.endsWith('+')) {
+    if (SAD.test(said)) return `I am sorry it was ${said}.`;
+    if (no) return 'Okay, that is fine.';
+    if (yes) return 'That is good.';
+    return `${said}. Thank you for telling me.`;
   }
 
-  switch (base) {
+  switch (prompt.id) {
     case 'wake':
       if (no) return `Oh, that is a pity. I hope tonight is better${who}.`;
       if (yes) return `I am glad you slept well${who}.`;
@@ -197,6 +199,18 @@ function affirmative(answer: string): boolean {
 
 const REASONS = ['noise', 'bad dream', 'too hot', 'light', 'I do not know'];
 
+/** The third and last question of a chat, only where there is something real left to ask. */
+const SECOND: Record<string, { text: string; chips: string[] }> = {
+  breakfast: { text: 'Who ate with you?', chips: PEOPLE },
+  lunch: { text: 'Who ate with you?', chips: PEOPLE },
+  dinner: { text: 'Who ate with you?', chips: PEOPLE },
+  friends: { text: 'Where did you play?', chips: ['school', 'home', 'park', 'garden', 'inside'] },
+  teacher: {
+    text: 'What do you want to tell your teacher tomorrow?',
+    chips: ['hello', 'thank you', 'I am tired', 'nothing'],
+  },
+};
+
 /**
  * A second question about the same thing the child just answered, so the buddy stays on the topic
  * instead of jumping straight to something new. Returns null when the topic is finished.
@@ -205,7 +219,10 @@ export function followUp(prompt: BuddyPrompt, answer: string): BuddyPrompt | nul
   const said = answer.trim();
   if (!said) return null;
   if (prompt.id.endsWith('++')) return null;
-  if (prompt.id.endsWith('+')) return { id: `${prompt.id}+`, text: 'How did that feel?', chips: FEELINGS };
+  if (prompt.id.endsWith('+')) {
+    const second = SECOND[prompt.id.slice(0, -1)];
+    return second ? { id: `${prompt.id}+`, ...second } : null;
+  }
 
   const ask = (text: string, chips: string[]): BuddyPrompt => ({ id: `${prompt.id}+`, text, chips });
   const no = negative(said);
