@@ -24,6 +24,14 @@ describe('promptsFor', () => {
     expect(promptsFor('afternoon').map((p) => p.id)).toContain('school');
   });
 
+  it('has plenty of questions and never repeats one', () => {
+    for (const time of ['morning', 'afternoon', 'evening', 'night'] as const) {
+      const ids = promptsFor(time).map((prompt) => prompt.id);
+      expect(ids.length).toBeGreaterThan(15);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+  });
+
   it('always offers answers to tap', () => {
     for (const time of ['morning', 'afternoon', 'evening', 'night'] as const) {
       for (const prompt of promptsFor(time)) {
