@@ -490,6 +490,12 @@ body.high-contrast .word-button {
   text-align: center;
 }
 
+.settings-note.warn {
+  color: #c0392b;
+  opacity: 1;
+  font-weight: 600;
+}
+
 .settings-panel .danger {
   border-color: #c0392b;
   color: #c0392b;

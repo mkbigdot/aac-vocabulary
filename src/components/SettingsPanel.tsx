@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Settings } from '../types';
-import { listVoices, onVoicesChanged, pickIndianBoyVoice, sortedVoices, speak } from '../lib/speech';
+import { listVoices, onVoicesChanged, pickIndianBoyVoice, sortedVoices, speak, speechSupported } from '../lib/speech';
+import { defaultSettings } from '../lib/storage';
 
 interface Props {
   settings: Settings;
@@ -32,6 +33,19 @@ export function SettingsPanel({ settings, visits, onChange, onClose, onExport, o
       pitch: 1.4,
       rate: 0.9,
     });
+
+  /** Puts speech back to the device default when a saved voice or volume has silenced the app. */
+  const fixSound = () => {
+    const fixed: Settings = {
+      ...settings,
+      voiceURI: null,
+      rate: defaultSettings.rate,
+      pitch: defaultSettings.pitch,
+      volume: 1,
+    };
+    onChange(fixed);
+    speak('Sound is working now.', fixed);
+  };
 
   return (
     <aside className="settings-panel" aria-label="Settings">
@@ -107,6 +121,16 @@ export function SettingsPanel({ settings, visits, onChange, onClose, onExport, o
       <button type="button" onClick={() => speak('Hello, this is my voice.', settings)}>
         🔊 Test voice
       </button>
+
+      <button type="button" onClick={fixSound}>
+        🛠️ Fix sound (reset voice)
+      </button>
+
+      {!speechSupported && <p className="settings-note warn">This browser cannot speak. Try Safari or Chrome.</p>}
+      {speechSupported && voices.length === 0 && (
+        <p className="settings-note warn">No voices installed on this device yet — download an English voice in the device settings.</p>
+      )}
+      {settings.volume === 0 && <p className="settings-note warn">Volume is at 0%, so nothing will be heard.</p>}
 
       <label>
         Buttons per row: {settings.columns}
