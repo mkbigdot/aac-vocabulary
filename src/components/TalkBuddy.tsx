@@ -17,24 +17,49 @@ interface Turn {
   text: string;
 }
 
+/** Calm speed for the buddy, whatever speed is set for reading sentences aloud. */
+const SLOW = 0.75;
+/** Silence between two things the buddy says, so a child has time to take it in. */
+const PAUSE_MS = 1200;
+
 export function TalkBuddy({ settings, onAnswer }: Props) {
   const name = settings.childName.trim();
   const [prompts] = useState<BuddyPrompt[]>(() => promptsFor(timeOfDay(new Date().getHours())));
   const [index, setIndex] = useState(0);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [mood, setMood] = useState<Mood>('idle');
+  const [muted, setMuted] = useState(false);
+  const mutedNow = useRef(false);
+  const mutedByChoice = useRef(false);
   const stopListening = useRef<(() => void) | null>(null);
   const lastSpoken = useRef('');
+  const pause = useRef<number | undefined>(undefined);
 
   const prompt = prompts[index % prompts.length];
 
+  /** Says each line in turn, waiting for the one before it to finish plus a pause. */
   const say = useCallback(
-    (text: string) => {
+    (lines: string[]) => {
       stopListening.current?.();
-      lastSpoken.current = text;
+      window.clearTimeout(pause.current);
+      lastSpoken.current = lines.join(' ');
+      setTurns((current) => [...current, ...lines.map((text): Turn => ({ who: 'buddy', text }))]);
+      if (mutedNow.current) {
+        setMood('idle');
+        return;
+      }
       setMood('talking');
-      setTurns((current) => [...current, { who: 'buddy', text }]);
-      speak(text, settings, () => setMood('idle'));
+      const slow = { ...settings, rate: Math.min(settings.rate, SLOW) };
+      const next = (position: number) => {
+        if (position >= lines.length) {
+          setMood('idle');
+          return;
+        }
+        speak(lines[position], slow, () => {
+          pause.current = window.setTimeout(() => next(position + 1), PAUSE_MS);
+        });
+      };
+      next(0);
     },
     [settings],
   );
@@ -43,13 +68,13 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    const time = timeOfDay(new Date().getHours());
-    say(`${greeting(time, name)} ${prompts[0].text}`);
+    say([greeting(timeOfDay(new Date().getHours()), name), prompts[0].text]);
   }, [name, prompts, say]);
 
   useEffect(
     () => () => {
       stopListening.current?.();
+      window.clearTimeout(pause.current);
       stopSpeaking();
     },
     [],
@@ -59,12 +84,20 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
     stopListening.current?.();
     onAnswer(text);
     const next = (index + 1) % prompts.length;
-    const reply = `${replyTo(prompt, text, name)} ${prompts[next].text}`;
-    lastSpoken.current = reply;
-    setTurns((current) => [...current, { who: 'child', text }, { who: 'buddy', text: reply }]);
+    setTurns((current) => [...current, { who: 'child', text }]);
     setMood('happy');
-    speak(reply, settings, () => setMood('idle'));
+    say([replyTo(prompt, text, name), prompts[next].text]);
     setIndex(next);
+  };
+
+  const mute = (on: boolean) => {
+    mutedNow.current = on;
+    setMuted(on);
+    if (on) {
+      window.clearTimeout(pause.current);
+      stopSpeaking();
+      setMood((current) => (current === 'talking' ? 'idle' : current));
+    }
   };
 
   const listen = () => {
@@ -72,14 +105,19 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
       stopListening.current?.();
       return;
     }
-    stopSpeaking();
+    mute(true);
+    window.clearTimeout(pause.current);
     setMood('listening');
     stopListening.current = listenOnce(
       (heard) => {
         if (isEcho(heard, lastSpoken.current)) return;
+        if (!mutedByChoice.current) mute(false);
         answer(heard);
       },
-      () => setMood((current) => (current === 'listening' ? 'idle' : current)),
+      () => {
+        if (!mutedByChoice.current) mute(false);
+        setMood((current) => (current === 'listening' ? 'idle' : current));
+      },
     );
   };
 
@@ -106,8 +144,18 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
       </div>
 
       <div className="buddy-actions">
-        <button type="button" onClick={() => say(prompt.text)}>
+        <button type="button" onClick={() => say([prompt.text])}>
           🔁 Ask again
+        </button>
+        <button
+          type="button"
+          className={muted ? 'active' : ''}
+          onClick={() => {
+            mutedByChoice.current = !muted;
+            mute(!muted);
+          }}
+        >
+          {muted ? '🔇 Muted' : '🔊 Voice on'}
         </button>
         {listeningSupported && (
           <button
@@ -124,7 +172,7 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
           onClick={() => {
             const next = (index + 1) % prompts.length;
             setIndex(next);
-            say(prompts[next].text);
+            say([prompts[next].text]);
           }}
         >
           ⏭️ Next question
