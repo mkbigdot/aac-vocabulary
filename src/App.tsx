@@ -5,6 +5,7 @@ import { EndingBar } from './components/EndingBar';
 import { SentenceBar } from './components/SentenceBar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { SpellPanel } from './components/SpellPanel';
+import { TalkBuddy } from './components/TalkBuddy';
 import { WordEditor } from './components/WordEditor';
 import { defaultCategories } from './data/categories';
 import { CORE_COLUMNS, coreWords } from './data/core';
@@ -20,7 +21,12 @@ import type { Category, PartOfSpeech, SentenceItem, Word } from './types';
 const CORE_ID = 'core';
 const RECENT_LIMIT = 24;
 
-type View = { kind: 'core' } | { kind: 'category'; id: string } | { kind: 'recent' } | { kind: 'spell' };
+type View =
+  | { kind: 'core' }
+  | { kind: 'category'; id: string }
+  | { kind: 'recent' }
+  | { kind: 'spell' }
+  | { kind: 'buddy' };
 
 export default function App() {
   const [state, setState] = useState<PersistedState>(() => loadState());
@@ -257,6 +263,16 @@ export default function App() {
         >
           🔤 Spell
         </button>
+        <button
+          type="button"
+          className={view.kind === 'buddy' ? 'active' : ''}
+          onClick={() => {
+            setQuery('');
+            setView({ kind: 'buddy' });
+          }}
+        >
+          🤖 Buddy
+        </button>
         <input
           className="search"
           type="search"
@@ -283,7 +299,20 @@ export default function App() {
         {!speechSupported && (
           <p className="warning">This browser has no speech synthesis, so words cannot be spoken aloud.</p>
         )}
-        {view.kind === 'spell' && !query ? (
+        {view.kind === 'buddy' && !query ? (
+          <TalkBuddy
+            settings={settings}
+            onAnswer={(text) =>
+              setSentence((current) => [
+                ...current,
+                {
+                  key: `buddy-${Date.now()}-${current.length}`,
+                  word: { id: `buddy:${Date.now()}`, label: text, symbol: '💬', pos: 'noun' },
+                },
+              ])
+            }
+          />
+        ) : view.kind === 'spell' && !query ? (
           <SpellPanel
             onSpeak={speakText}
             onSubmit={(text) =>
@@ -304,7 +333,7 @@ export default function App() {
             onReorder={view.kind === 'core' || view.kind === 'category' ? reorderWords : undefined}
           />
         )}
-        {boardWords.length === 0 && view.kind !== 'spell' && (
+        {boardWords.length === 0 && view.kind !== 'spell' && view.kind !== 'buddy' && (
           <p className="empty">{query ? `No words match “${query}”.` : 'No words here yet.'}</p>
         )}
       </main>

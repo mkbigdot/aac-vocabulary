@@ -3,7 +3,7 @@ import type { Category, Settings, Word } from '../types';
 const KEY = 'aac-vocabulary:v1';
 
 export const defaultSettings: Settings = {
-  childName: '',
+  childName: 'Karthik',
   voiceURI: null,
   rate: 0.95,
   pitch: 1,

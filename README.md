@@ -25,6 +25,11 @@ and keeps working offline.
 - **Personalisation** — edit mode to add, edit, hide, delete or drag words into any position, and to
   drag the category tabs into the order you want; recent words view;
   adjustable grid size, label visibility, colour coding and high-contrast mode.
+- **Talk Buddy** — an animated face that greets the child by name, asks the questions of the moment
+  (breakfast, lunch, school, dinner, feelings, bedtime), speaks them aloud, takes an answer by tap or
+  by microphone, and replies warmly. It runs entirely on the device: no account, no API key, no cost.
+- **The child's name** — set it in settings; the board greets them and their name becomes a
+  speakable button on the core board.
 - **Backup** — export/import the whole personalised vocabulary as a JSON file.
 - **Offline** — service worker caches the app; everything is stored locally in the browser.
 

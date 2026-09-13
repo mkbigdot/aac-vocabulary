@@ -49,8 +49,11 @@ function pronounce(text: string): string {
   return /^i[.!?]?$/i.test(text.trim()) ? 'eye' : text;
 }
 
-export function speak(text: string, settings: Settings): void {
-  if (!synth || !text.trim()) return;
+export function speak(text: string, settings: Settings, onEnd?: () => void): void {
+  if (!synth || !text.trim()) {
+    onEnd?.();
+    return;
+  }
   synth.cancel();
   const utterance = new SpeechSynthesisUtterance(pronounce(text));
   const voice = settings.voiceURI ? listVoices().find((v) => v.voiceURI === settings.voiceURI) : undefined;
@@ -61,6 +64,10 @@ export function speak(text: string, settings: Settings): void {
   utterance.rate = settings.rate;
   utterance.pitch = settings.pitch;
   utterance.volume = settings.volume;
+  if (onEnd) {
+    utterance.onend = () => onEnd();
+    utterance.onerror = () => onEnd();
+  }
   synth.speak(utterance);
 }
 

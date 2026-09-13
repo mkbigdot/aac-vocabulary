@@ -277,6 +277,145 @@ body.high-contrast .word-button {
   background: var(--panel);
 }
 
+/* Talk buddy */
+.buddy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.buddy-face {
+  font-size: clamp(4rem, 18vw, 7rem);
+  line-height: 1;
+  animation: buddy-bob 2.4s ease-in-out infinite;
+}
+
+.buddy-face.talking {
+  animation: buddy-talk 0.4s ease-in-out infinite;
+}
+
+.buddy-face.listening {
+  animation: buddy-pulse 1s ease-in-out infinite;
+}
+
+.buddy-face.happy {
+  animation: buddy-jump 0.6s ease-in-out 2;
+}
+
+@keyframes buddy-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes buddy-talk {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes buddy-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.7;
+  }
+}
+
+@keyframes buddy-jump {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  30% {
+    transform: translateY(-16px) rotate(-8deg);
+  }
+  60% {
+    transform: translateY(-8px) rotate(8deg);
+  }
+}
+
+.buddy-chat {
+  width: min(100%, 680px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.buddy-line {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  max-width: 85%;
+}
+
+.buddy-line.buddy {
+  align-self: flex-start;
+  background: var(--panel);
+  border: 2px solid var(--line);
+}
+
+.buddy-line.child {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #fff;
+}
+
+.buddy-chips,
+.buddy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.buddy-chip {
+  padding: 14px 20px;
+  font-size: 1.2rem;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+}
+
+.buddy-actions button {
+  padding: 12px 16px;
+  font-size: 1rem;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.buddy-actions button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+@media (max-height: 520px) {
+  .buddy-face {
+    font-size: 3rem;
+  }
+
+  .buddy-chat {
+    max-height: 96px;
+    overflow-y: auto;
+  }
+}
+
 /* Settings drawer */
 .settings-panel {
   position: fixed;
