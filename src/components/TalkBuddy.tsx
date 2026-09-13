@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { buddyFace, greeting, isEcho, promptsFor, replyTo, timeOfDay, type BuddyPrompt } from '../lib/buddy';
+import {
+  buddyFace,
+  followUp,
+  greeting,
+  isEcho,
+  promptsFor,
+  replyTo,
+  timeOfDay,
+  type BuddyPrompt,
+} from '../lib/buddy';
 import { listenOnce, listeningSupported } from '../lib/listen';
 import { speak, stopSpeaking } from '../lib/speech';
 import type { Settings } from '../types';
@@ -26,6 +35,7 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
   const name = settings.childName.trim();
   const [prompts] = useState<BuddyPrompt[]>(() => promptsFor(timeOfDay(new Date().getHours())));
   const [index, setIndex] = useState(0);
+  const [topic, setTopic] = useState<BuddyPrompt | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [mood, setMood] = useState<Mood>('idle');
   const [muted, setMuted] = useState(false);
@@ -34,7 +44,7 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
   const lastSpoken = useRef('');
   const pause = useRef<number | undefined>(undefined);
 
-  const prompt = prompts[index % prompts.length];
+  const prompt = topic ?? prompts[index % prompts.length];
 
   /** Says each line in turn, waiting for the one before it to finish plus a pause. */
   const say = useCallback(
@@ -82,11 +92,18 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
   const answer = (text: string) => {
     stopListening.current?.();
     onAnswer(text);
-    const next = (index + 1) % prompts.length;
     setTurns((current) => [...current, { who: 'child', text }]);
     setMood('happy');
-    say([replyTo(prompt, text, name), prompts[next].text]);
+    const more = followUp(prompt, text);
+    if (more) {
+      setTopic(more);
+      say([replyTo(prompt, text, name), more.text]);
+      return;
+    }
+    const next = (index + 1) % prompts.length;
+    setTopic(null);
     setIndex(next);
+    say([replyTo(prompt, text, name), prompts[next].text]);
   };
 
   const mute = (on: boolean) => {
@@ -165,6 +182,7 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
           type="button"
           onClick={() => {
             const next = (index + 1) % prompts.length;
+            setTopic(null);
             setIndex(next);
             say([prompts[next].text]);
           }}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buddyFace, greeting, isEcho, promptsFor, replyTo, timeOfDay } from './buddy';
+import { buddyFace, followUp, greeting, isEcho, promptsFor, replyTo, timeOfDay } from './buddy';
 
 describe('timeOfDay', () => {
   it('splits the day into four parts', () => {
@@ -52,6 +52,41 @@ describe('replyTo', () => {
 
   it('is patient with an empty answer', () => {
     expect(replyTo(feel, '  ', 'Arjun')).toBe('Take your time Arjun.');
+  });
+});
+
+describe('followUp', () => {
+  const wake = promptsFor('morning').find((p) => p.id === 'wake')!;
+  const lunch = promptsFor('afternoon').find((p) => p.id === 'lunch')!;
+  const colour = promptsFor('morning').find((p) => p.id === 'colour')!;
+
+  it('stays on the topic instead of jumping to a new one', () => {
+    expect(followUp(wake, 'yes')?.text).toContain('dream');
+    expect(followUp(wake, 'no')?.text).toContain('woke you up');
+    expect(followUp(lunch, 'rice')?.text).toBe('Did you like it?');
+  });
+
+  it('goes one step deeper and then lets a new topic start', () => {
+    const second = followUp(colour, 'blue')!;
+    const third = followUp(second, 'toy')!;
+    expect(third.text).toBe('How did that feel?');
+    expect(followUp(third, 'happy')).toBeNull();
+  });
+
+  it('does not push when there is nothing to answer', () => {
+    expect(followUp(wake, '  ')).toBeNull();
+    expect(followUp(promptsFor('morning').find((p) => p.id === 'pain')!, 'no')).toBeNull();
+  });
+
+  it('offers answers to tap for every follow up', () => {
+    for (const time of ['morning', 'afternoon', 'evening', 'night'] as const) {
+      for (const prompt of promptsFor(time)) {
+        for (const said of ['yes', 'no', 'tired']) {
+          const more = followUp(prompt, said);
+          if (more) expect(more.chips.length).toBeGreaterThan(0);
+        }
+      }
+    }
   });
 });
 

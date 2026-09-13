@@ -145,6 +145,80 @@ export function replyTo(prompt: BuddyPrompt, answer: string, name: string): stri
   return `${cheer} You said ${said}.`;
 }
 
+function negative(answer: string): boolean {
+  return /^(no|nope|not really|nothing|none)\b/i.test(answer.trim());
+}
+
+const REASONS = ['noise', 'bad dream', 'too hot', 'light', 'I do not know'];
+
+/**
+ * A second question about the same thing the child just answered, so the buddy stays on the topic
+ * instead of jumping straight to something new. Returns null when the topic is finished.
+ */
+export function followUp(prompt: BuddyPrompt, answer: string): BuddyPrompt | null {
+  const said = answer.trim();
+  if (!said) return null;
+  if (prompt.id.endsWith('++')) return null;
+  if (prompt.id.endsWith('+')) return { id: `${prompt.id}+`, text: 'How did that feel?', chips: FEELINGS };
+
+  const ask = (text: string, chips: string[]): BuddyPrompt => ({ id: `${prompt.id}+`, text, chips });
+  const no = negative(said);
+
+  switch (prompt.id) {
+    case 'wake':
+    case 'dream':
+      return no ? ask('Oh no. What woke you up?', REASONS) : ask('Lovely. What did you dream about?', PLAY);
+    case 'feel':
+      return /sad|tired|angry|bad/i.test(said)
+        ? ask('I am sorry. Do you want a hug or some quiet time?', ['a hug', 'quiet time', 'my tablet', 'nothing'])
+        : ask('What made you feel like that?', ['playing', 'friends', 'food', 'family', 'school']);
+    case 'breakfast':
+    case 'lunch':
+    case 'dinner':
+      return ask('Did you like it?', YES_NO);
+    case 'school':
+    case 'learn':
+      return ask('Who did you do that with?', PEOPLE);
+    case 'friends':
+      return no
+        ? ask('Would you like to play with someone tomorrow?', YES_NO)
+        : ask('What did you play together?', PLAY);
+    case 'friend-name':
+      return ask('What did you play with them?', PLAY);
+    case 'teacher':
+      return ask('What did your teacher say to you?', ['well done', 'be quiet', 'nothing', 'a story', 'I forgot']);
+    case 'homework':
+      return no ? null : ask('Do you want help with it?', YES_NO);
+    case 'pain':
+      return no ? null : ask('Shall we tell someone to help you?', YES_NO);
+    case 'play':
+    case 'toy':
+      return ask('Do you want to play with it now?', YES_NO);
+    case 'tv':
+    case 'song':
+      return ask('Who do you like to watch it with?', PEOPLE);
+    case 'animal':
+      return ask('Where do you see them?', ['at home', 'outside', 'on TV', 'at school', 'in a book']);
+    case 'colour':
+      return ask('What do you have in that colour?', ['t-shirt', 'toy', 'bag', 'shoes', 'nothing']);
+    case 'day':
+    case 'best':
+      return ask('Tell me more about it. Who was with you?', PEOPLE);
+    case 'hard':
+      return no ? null : ask('That sounds hard. Do you want help with it?', YES_NO);
+    case 'snack':
+    case 'drink':
+    case 'want':
+      return ask('Shall we ask for it now?', YES_NO);
+    case 'tired':
+      return no ? ask('What do you want to do before bed?', PLAY) : ask('Do you want a story first?', YES_NO);
+    case 'outside':
+      return no ? null : ask('Where do you want to go?', ['park', 'shop', 'garden', 'walk', 'school']);
+    default:
+      return null;
+  }
+}
+
 function words(text: string): string[] {
   return text.toLowerCase().match(/[a-z']+/g) ?? [];
 }
