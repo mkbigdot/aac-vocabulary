@@ -17,10 +17,14 @@ export interface ChatLine {
   text: string;
 }
 
-const ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
+const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-const TIMEOUT_MS = 8000;
+/** Google retires model names, so try the aliases in turn and keep the first one that answers. */
+const MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-2.5-flash'];
+
+let working: string | null = null;
+
+const TIMEOUT_MS = 12000;
 
 function instructions(name: string): string {
   const who = name || 'the child';
@@ -73,18 +77,31 @@ export async function aiTurn(
     })),
     { role: 'user', parts: [{ text: said }] },
   ];
+  const body = JSON.stringify({
+    contents,
+    systemInstruction: { parts: [{ text: instructions(name) }] },
+    generationConfig: { temperature: 0.8, maxOutputTokens: 600, responseMimeType: 'application/json' },
+  });
+
+  for (const model of working ? [working, ...MODELS.filter((m) => m !== working)] : MODELS) {
+    const turn = await ask(model, key, body);
+    if (turn) {
+      working = model;
+      return turn;
+    }
+  }
+  return null;
+}
+
+async function ask(model: string, key: string, body: string): Promise<AiTurn | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const response = await fetch(`${ENDPOINT}?key=${encodeURIComponent(key)}`, {
+    const response = await fetch(`${API}/${model}:generateContent?key=${encodeURIComponent(key)}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       signal: controller.signal,
-      body: JSON.stringify({
-        contents,
-        systemInstruction: { parts: [{ text: instructions(name) }] },
-        generationConfig: { temperature: 0.8, maxOutputTokens: 400, responseMimeType: 'application/json' },
-      }),
+      body,
     });
     if (!response.ok) return null;
     const data: unknown = await response.json();
