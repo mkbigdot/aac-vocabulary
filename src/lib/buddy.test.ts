@@ -44,10 +44,21 @@ describe('promptsFor', () => {
 describe('replyTo', () => {
   const feel = promptsFor('morning').find((p) => p.id === 'feel')!;
   const breakfast = promptsFor('morning').find((p) => p.id === 'breakfast')!;
+  const dream = promptsFor('morning').find((p) => p.id === 'dream')!;
 
   it('repeats the answer back', () => {
-    expect(replyTo(feel, 'happy', 'Arjun')).toContain('You feel happy');
+    expect(replyTo(feel, 'happy', 'Arjun')).toContain('you feel happy');
     expect(replyTo(breakfast, 'eggs', '')).toContain('eggs');
+  });
+
+  it('answers yes and no differently instead of always cheering', () => {
+    expect(replyTo(dream, 'no', 'Arjun')).not.toContain('no.');
+    expect(replyTo(dream, 'no', 'Arjun')).toContain('That is okay');
+    expect(replyTo(dream, 'yes', 'Arjun')).toContain('lovely');
+  });
+
+  it('is kind about a sad feeling', () => {
+    expect(replyTo(feel, 'sad', '')).toContain('I am sorry');
   });
 
   it('is patient with an empty answer', () => {
@@ -61,7 +72,7 @@ describe('followUp', () => {
   const colour = promptsFor('morning').find((p) => p.id === 'colour')!;
 
   it('stays on the topic instead of jumping to a new one', () => {
-    expect(followUp(wake, 'yes')?.text).toContain('dream');
+    expect(followUp(wake, 'yes')?.text).toContain('dream about');
     expect(followUp(wake, 'no')?.text).toContain('woke you up');
     expect(followUp(lunch, 'rice')?.text).toBe('Did you like it?');
   });

@@ -127,26 +127,72 @@ export function promptsFor(time: TimeOfDay): BuddyPrompt[] {
 
 const CHEERS = ['Nice!', 'Thank you for telling me!', 'That is lovely!', 'Good talking!', 'I like that!'];
 
-/** A short, warm reply to whatever the child answered. */
+const SAD = /sad|tired|angry|bad|hurt|scared|sick|cross/i;
+
+/** A short, warm reply that fits what the child actually answered, not just a cheer. */
 export function replyTo(prompt: BuddyPrompt, answer: string, name: string): string {
   const said = answer.trim();
   const who = name ? ` ${name}` : '';
   if (!said) return `Take your time${who}.`;
-  const cheer = CHEERS[said.length % CHEERS.length];
-  if (prompt.id === 'feel') return `${cheer} You feel ${said}.`;
-  if (prompt.id === 'breakfast' || prompt.id === 'lunch' || prompt.id === 'dinner') {
-    return `${said}! That sounds tasty.`;
+  const no = negative(said);
+  const yes = affirmative(said);
+  const base = prompt.id.replace(/\++$/, '');
+
+  if (prompt.id.endsWith('++')) {
+    return SAD.test(said) ? `I am sorry you felt ${said}.` : `I am happy you felt ${said}.`;
   }
-  if (prompt.id === 'school') return `You did ${said} in school. ${cheer}`;
-  if (prompt.id === 'pain') {
-    return said.toLowerCase() === 'no' ? `I am glad nothing hurts${who}.` : `Your ${said} hurts. Let us tell someone.`;
+
+  switch (base) {
+    case 'wake':
+      if (no) return `Oh, that is a pity. I hope tonight is better${who}.`;
+      if (yes) return `I am glad you slept well${who}.`;
+      return `${said}. Thank you for telling me.`;
+    case 'dream':
+      if (no) return 'That is okay. Dreams do not come every night.';
+      if (yes) return 'A nice dream! That is lovely.';
+      return `${said}. What a dream!`;
+    case 'feel':
+      return SAD.test(said) ? `I am sorry you feel ${said}.` : `I am happy you feel ${said}.`;
+    case 'breakfast':
+    case 'lunch':
+    case 'dinner':
+      return no ? 'Okay, maybe you can eat something soon.' : `${said}! That sounds tasty.`;
+    case 'school':
+    case 'learn':
+      return no ? 'That is okay, some days are quiet.' : `You did ${said}. That is good.`;
+    case 'friends':
+      if (no) return 'Maybe you can play together tomorrow.';
+      if (yes) return 'That is lovely.';
+      return `${said}. That sounds fun.`;
+    case 'teacher':
+      if (no) return 'I am sorry about that. You can tell someone at home.';
+      if (yes) return 'I am glad your teacher was kind.';
+      return `${said}. Thank you for telling me.`;
+    case 'pain':
+      return no ? `I am glad nothing hurts${who}.` : `Your ${said} hurts. Let us tell someone.`;
+    case 'hard':
+      return no ? 'I am glad nothing was hard today.' : `${said} was hard. I am sorry.`;
+    case 'quiet':
+      return yes ? 'I am sorry it is noisy. Let us find a quiet place.' : 'Good, it is nice and calm.';
+    case 'help':
+      return yes ? 'Okay, let us get some help.' : 'Okay, you are doing well on your own.';
+    case 'snack':
+    case 'drink':
+    case 'want':
+      return no ? 'Okay, maybe later.' : `${said}. Let us ask for it!`;
+    default:
+      if (no) return `Okay, no problem${who}.`;
+      if (yes) return `Okay${who}, that sounds good.`;
+      return `${CHEERS[said.length % CHEERS.length]} ${said}.`;
   }
-  if (prompt.id === 'snack' || prompt.id === 'drink' || prompt.id === 'want') return `${said}. Let us ask for it!`;
-  return `${cheer} You said ${said}.`;
 }
 
 function negative(answer: string): boolean {
   return /^(no|nope|not really|nothing|none)\b/i.test(answer.trim());
+}
+
+function affirmative(answer: string): boolean {
+  return /^(yes|yeah|yep|okay|ok|a little|sure)\b/i.test(answer.trim());
 }
 
 const REASONS = ['noise', 'bad dream', 'too hot', 'light', 'I do not know'];
@@ -166,8 +212,11 @@ export function followUp(prompt: BuddyPrompt, answer: string): BuddyPrompt | nul
 
   switch (prompt.id) {
     case 'wake':
+      return no ? ask('What woke you up?', REASONS) : ask('What did you dream about?', PLAY);
     case 'dream':
-      return no ? ask('Oh no. What woke you up?', REASONS) : ask('Lovely. What did you dream about?', PLAY);
+      return no
+        ? ask('What would you like to dream about tonight?', PLAY)
+        : ask('What was your dream about?', PLAY);
     case 'feel':
       return /sad|tired|angry|bad/i.test(said)
         ? ask('I am sorry. Do you want a hug or some quiet time?', ['a hug', 'quiet time', 'my tablet', 'nothing'])
