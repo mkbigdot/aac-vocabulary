@@ -14,6 +14,7 @@ export const defaultSettings: Settings = {
   showLabels: true,
   highContrast: false,
   colorByPartOfSpeech: true,
+  aiKey: '',
 };
 
 export interface PersistedState {

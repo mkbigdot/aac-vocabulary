@@ -9,6 +9,7 @@ import {
   timeOfDay,
   type BuddyPrompt,
 } from '../lib/buddy';
+import { aiTurn } from '../lib/ai';
 import { listenOnce, listeningSupported } from '../lib/listen';
 import { speak, stopSpeaking } from '../lib/speech';
 import type { Settings } from '../types';
@@ -30,6 +31,8 @@ interface Turn {
 const SLOW = 0.75;
 /** Silence between two things the buddy says, so a child has time to take it in. */
 const PAUSE_MS = 1200;
+/** Answers to offer when the AI buddy forgets to suggest any. */
+const FALLBACK_CHIPS = ['yes', 'no', 'a little', 'I do not know'];
 
 export function TalkBuddy({ settings, onAnswer }: Props) {
   const name = settings.childName.trim();
@@ -39,6 +42,8 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [mood, setMood] = useState<Mood>('idle');
   const [muted, setMuted] = useState(false);
+  const [thinking, setThinking] = useState(false);
+  const history = useRef<Turn[]>([]);
   const mutedNow = useRef(false);
   const stopListening = useRef<(() => void) | null>(null);
   const lastSpoken = useRef('');
@@ -52,7 +57,9 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
       stopListening.current?.();
       window.clearTimeout(pause.current);
       lastSpoken.current = lines.join(' ');
-      setTurns((current) => [...current, ...lines.map((text): Turn => ({ who: 'buddy', text }))]);
+      const spoken = lines.map((text): Turn => ({ who: 'buddy', text }));
+      history.current = [...history.current, ...spoken];
+      setTurns((current) => [...current, ...spoken]);
       if (mutedNow.current) {
         setMood('idle');
         return;
@@ -89,21 +96,42 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
     [],
   );
 
-  const answer = (text: string) => {
-    stopListening.current?.();
-    onAnswer(text);
-    setTurns((current) => [...current, { who: 'child', text }]);
-    setMood('happy');
-    const more = followUp(prompt, text);
+  /** The offline buddy: a written reply, then either a follow up or the next question. */
+  const scripted = (asked: BuddyPrompt, text: string) => {
+    const more = followUp(asked, text);
     if (more) {
       setTopic(more);
-      say([replyTo(prompt, text, name), more.text]);
+      say([replyTo(asked, text, name), more.text]);
       return;
     }
     const next = (index + 1) % prompts.length;
     setTopic(null);
     setIndex(next);
-    say([replyTo(prompt, text, name), prompts[next].text]);
+    say([replyTo(asked, text, name), prompts[next].text]);
+  };
+
+  const answer = (text: string) => {
+    stopListening.current?.();
+    onAnswer(text);
+    history.current = [...history.current, { who: 'child', text }];
+    setTurns((current) => [...current, { who: 'child', text }]);
+    setMood('happy');
+    if (settings.aiKey.trim()) {
+      setThinking(true);
+      const asked = prompt;
+      aiTurn(settings.aiKey, name, history.current.slice(0, -1), text)
+        .then((turn) => {
+          if (!turn) {
+            scripted(asked, text);
+            return;
+          }
+          setTopic({ id: 'ai', text: turn.question, chips: turn.chips.length ? turn.chips : FALLBACK_CHIPS });
+          say([turn.reply, turn.question]);
+        })
+        .finally(() => setThinking(false));
+      return;
+    }
+    scripted(prompt, text);
   };
 
   const mute = (on: boolean) => {
@@ -147,18 +175,25 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
             {turn.text}
           </p>
         ))}
+        {thinking && <p className="buddy-line buddy">…</p>}
       </div>
 
       <div className="buddy-chips">
         {prompt.chips.map((chip) => (
-          <button key={chip} type="button" className="buddy-chip" onClick={() => answer(chip)}>
+          <button
+            key={chip}
+            type="button"
+            className="buddy-chip"
+            disabled={thinking}
+            onClick={() => answer(chip)}
+          >
             {chip}
           </button>
         ))}
       </div>
 
       <div className="buddy-actions">
-        <button type="button" onClick={() => say([prompt.text])}>
+        <button type="button" disabled={thinking} onClick={() => say([prompt.text])}>
           🔁 Ask again
         </button>
         <button
@@ -172,7 +207,7 @@ export function TalkBuddy({ settings, onAnswer }: Props) {
           <button
             type="button"
             className={mood === 'listening' ? 'active' : ''}
-            disabled={mood === 'talking'}
+            disabled={mood === 'talking' || thinking}
             onClick={listen}
           >
             {mood === 'listening' ? '⏹️ Stop' : '🎤 Talk to me'}

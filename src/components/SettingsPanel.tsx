@@ -67,6 +67,21 @@ export function SettingsPanel({ settings, visits, onChange, onClose, onExport, o
       </label>
 
       <label>
+        AI talk buddy key (Google Gemini)
+        <input
+          type="password"
+          value={settings.aiKey}
+          placeholder="paste key, or leave empty"
+          autoComplete="off"
+          onChange={(event) => set('aiKey', event.target.value.trim())}
+        />
+      </label>
+      <p className="settings-note">
+        With a key the buddy answers freely instead of using set questions. Get a free key at
+        aistudio.google.com/apikey. It is kept on this device only, and the buddy still works without it.
+      </p>
+
+      <label>
         Voice
         <select value={settings.voiceURI ?? ''} onChange={(event) => set('voiceURI', event.target.value || null)}>
           <option value="">Device default</option>

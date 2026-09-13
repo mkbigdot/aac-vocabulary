@@ -45,6 +45,8 @@ export interface Settings {
   showLabels: boolean;
   highContrast: boolean;
   colorByPartOfSpeech: boolean;
+  /** Google Gemini key for the talk buddy, kept on this device only. Empty means offline buddy. */
+  aiKey: string;
 }
 
 export interface SentenceItem {

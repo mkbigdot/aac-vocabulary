@@ -28,6 +28,9 @@ and keeps working offline.
 - **Talk Buddy** — an animated face that greets the child by name, asks the questions of the moment
   (breakfast, lunch, school, dinner, feelings, bedtime), speaks them aloud, takes an answer by tap or
   by microphone, and replies warmly. It runs entirely on the device: no account, no API key, no cost.
+  Optionally paste a Google Gemini key in Settings and the buddy answers freely instead of following
+  the written questions; the key stays in the browser on that device and the buddy falls back to the
+  offline questions whenever there is no key, no internet or no answer.
 - **The child's name** — set it in settings; the board greets them and their name becomes a
   speakable button on the core board.
 - **Backup** — export/import the whole personalised vocabulary as a JSON file.
