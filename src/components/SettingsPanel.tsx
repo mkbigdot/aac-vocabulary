@@ -4,6 +4,8 @@ import { listVoices, onVoicesChanged, pickIndianBoyVoice, sortedVoices, speak } 
 
 interface Props {
   settings: Settings;
+  /** How many times the app has been opened on this device. */
+  visits: number;
   onChange: (settings: Settings) => void;
   onClose: () => void;
   onExport: () => void;
@@ -11,7 +13,7 @@ interface Props {
   onReset: () => void;
 }
 
-export function SettingsPanel({ settings, onChange, onClose, onExport, onImport, onReset }: Props) {
+export function SettingsPanel({ settings, visits, onChange, onClose, onExport, onImport, onReset }: Props) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>(listVoices());
 
   useEffect(() => {
@@ -39,6 +41,16 @@ export function SettingsPanel({ settings, onChange, onClose, onExport, onImport,
           ✕
         </button>
       </header>
+
+      <label>
+        Child's name
+        <input
+          type="text"
+          value={settings.childName}
+          placeholder="e.g. Arjun"
+          onChange={(event) => set('childName', event.target.value)}
+        />
+      </label>
 
       <label>
         Voice
@@ -173,6 +185,10 @@ export function SettingsPanel({ settings, onChange, onClose, onExport, onImport,
       <button type="button" className="danger" onClick={onReset}>
         Reset everything
       </button>
+
+      <p className="settings-note">
+        Opened {visits} {visits === 1 ? 'time' : 'times'} on this device.
+      </p>
     </aside>
   );
 }

@@ -33,6 +33,8 @@ export interface Category {
 }
 
 export interface Settings {
+  /** The child's name, used to greet them and as a button for saying their own name. */
+  childName: string;
   voiceURI: string | null;
   rate: number;
   pitch: number;

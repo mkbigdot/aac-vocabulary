@@ -2,6 +2,8 @@ import type { SentenceItem } from '../types';
 
 interface Props {
   items: SentenceItem[];
+  /** The child's name, shown in the empty-board prompt. */
+  greeting?: string;
   /** The tidied sentence that will actually be spoken. */
   preview: string;
   onSpeak: () => void;
@@ -10,12 +12,14 @@ interface Props {
   onRemove: (key: string) => void;
 }
 
-export function SentenceBar({ items, preview, onSpeak, onBackspace, onClear, onRemove }: Props) {
+export function SentenceBar({ items, greeting, preview, onSpeak, onBackspace, onClear, onRemove }: Props) {
   return (
     <div className="sentence-bar">
       <button type="button" className="sentence-strip" onClick={onSpeak} aria-label="Speak sentence">
         {items.length === 0 ? (
-          <span className="sentence-placeholder">Tap words to build a sentence…</span>
+          <span className="sentence-placeholder">
+            {greeting ? `Hi ${greeting}, tap words to build a sentence…` : 'Tap words to build a sentence…'}
+          </span>
         ) : (
           items.map((item) => (
             <span

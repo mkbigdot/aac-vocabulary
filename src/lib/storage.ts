@@ -3,6 +3,7 @@ import type { Category, Settings, Word } from '../types';
 const KEY = 'aac-vocabulary:v1';
 
 export const defaultSettings: Settings = {
+  childName: '',
   voiceURI: null,
   rate: 0.95,
   pitch: 1,
@@ -29,6 +30,8 @@ export interface PersistedState {
   wordOrder: Record<string, string[]>;
   /** User-chosen order of the category tabs. */
   categoryOrder: string[];
+  /** How many times the app has been opened on this device. */
+  visits: number;
 }
 
 export const emptyState: PersistedState = {
@@ -39,6 +42,7 @@ export const emptyState: PersistedState = {
   recentWordIds: [],
   wordOrder: {},
   categoryOrder: [],
+  visits: 0,
 };
 
 export function loadState(): PersistedState {
@@ -54,6 +58,7 @@ export function loadState(): PersistedState {
       recentWordIds: parsed.recentWordIds ?? [],
       wordOrder: parsed.wordOrder ?? {},
       categoryOrder: parsed.categoryOrder ?? [],
+      visits: parsed.visits ?? 0,
     };
   } catch {
     return emptyState;
@@ -82,5 +87,6 @@ export function importState(json: string): PersistedState {
     recentWordIds: parsed.recentWordIds ?? [],
     wordOrder: parsed.wordOrder ?? {},
     categoryOrder: parsed.categoryOrder ?? [],
+    visits: parsed.visits ?? 0,
   };
 }

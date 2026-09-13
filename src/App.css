@@ -319,8 +319,16 @@ body.high-contrast .word-button {
 }
 
 .settings-panel select,
-.settings-panel input[type='range'] {
+.settings-panel input[type='range'],
+.settings-panel input[type='text'] {
   width: 100%;
+}
+
+.settings-panel input[type='text'] {
+  padding: 8px;
+  font-size: 1rem;
+  border: 2px solid var(--line);
+  border-radius: 8px;
 }
 
 .settings-panel button,
@@ -334,6 +342,13 @@ body.high-contrast .word-button {
 
 .settings-panel .file-input input {
   display: none;
+}
+
+.settings-note {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  text-align: center;
 }
 
 .settings-panel .danger {

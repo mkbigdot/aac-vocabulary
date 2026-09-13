@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 import { Board } from './components/Board';
 import { EndingBar } from './components/EndingBar';
@@ -35,6 +35,13 @@ export default function App() {
 
   useEffect(() => saveState(state), [state]);
 
+  const counted = useRef(false);
+  useEffect(() => {
+    if (counted.current) return;
+    counted.current = true;
+    setState((current) => ({ ...current, visits: current.visits + 1 }));
+  }, []);
+
   useEffect(() => {
     document.body.classList.toggle('high-contrast', settings.highContrast);
   }, [settings.highContrast]);
@@ -53,11 +60,13 @@ export default function App() {
 
   const core: Word[] = useMemo(() => {
     const hidden = new Set(state.hiddenWordIds);
+    const name = settings.childName.trim();
+    const nameWord: Word[] = name ? [{ id: 'child-name', label: name, symbol: '🧒', pos: 'noun' }] : [];
     return sortByOrder(
-      [...coreWords, ...(state.customWords[CORE_ID] ?? [])].filter((word) => !hidden.has(word.id)),
+      [...nameWord, ...coreWords, ...(state.customWords[CORE_ID] ?? [])].filter((word) => !hidden.has(word.id)),
       state.wordOrder[CORE_ID],
     );
-  }, [state.customWords, state.hiddenWordIds, state.wordOrder]);
+  }, [settings.childName, state.customWords, state.hiddenWordIds, state.wordOrder]);
 
   const allWords: Word[] = useMemo(
     () => [...core, ...categories.flatMap((category) => category.words)],
@@ -185,6 +194,7 @@ export default function App() {
     <div className="app">
       <SentenceBar
         items={sentence}
+        greeting={settings.childName.trim()}
         preview={sentence.length > 0 && spokenText !== plainText ? spokenText : ''}
         onSpeak={() => speakText(spokenText)}
         onBackspace={() => setSentence((current) => current.slice(0, -1))}
@@ -302,6 +312,7 @@ export default function App() {
       {settingsOpen && (
         <SettingsPanel
           settings={settings}
+          visits={state.visits}
           onChange={(next) => setState((current) => ({ ...current, settings: next }))}
           onClose={() => setSettingsOpen(false)}
           onExport={() => {
