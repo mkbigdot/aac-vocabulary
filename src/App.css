@@ -110,7 +110,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  overflow-x: auto;
 }
 
 .ending-title {
@@ -178,9 +178,10 @@ body.high-contrast .word-button {
 }
 
 .word-label {
-  font-size: clamp(0.6rem, 1.1vw, 0.95rem);
+  font-size: clamp(0.7rem, 1.1vw, 0.95rem);
   text-align: center;
   word-break: break-word;
+  hyphens: auto;
 }
 
 .add-word {
@@ -405,5 +406,42 @@ body.high-contrast .word-button {
 
   .nav-bar .search {
     flex: 0 0 150px;
+  }
+}
+
+/* Phones: fewer, bigger buttons filling the screen */
+@media (max-width: 560px) {
+  .app {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .sentence-strip {
+    min-height: 60px;
+  }
+
+  .sentence-chip span:first-child {
+    font-size: 1.3rem;
+  }
+
+  .nav-bar button,
+  .ending-button {
+    padding: 8px 10px;
+  }
+
+  .ending-bar {
+    flex-wrap: nowrap;
+  }
+
+  .ending-title {
+    display: none;
+  }
+
+  .word-symbol {
+    font-size: 2rem;
+  }
+
+  .word-label {
+    font-size: 0.85rem;
   }
 }

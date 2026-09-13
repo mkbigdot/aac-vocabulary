@@ -12,6 +12,7 @@ import { correctSentence } from './lib/grammar';
 import { applyEnding, type Ending } from './lib/morphology';
 import { moveInOrder, sortByOrder } from './lib/order';
 import { useDragReorder } from './lib/useDragReorder';
+import { useFittingColumns } from './lib/useFittingColumns';
 import { speak, speechSupported, stopSpeaking } from './lib/speech';
 import { emptyState, exportState, importState, loadState, saveState, type PersistedState } from './lib/storage';
 import type { Category, PartOfSpeech, SentenceItem, Word } from './types';
@@ -140,6 +141,8 @@ export default function App() {
         : { ...current, hiddenWordIds: [...current.hiddenWordIds, word.id] },
     );
   };
+
+  const columns = useFittingColumns(view.kind === 'core' && !query ? CORE_COLUMNS : settings.columns);
 
   const currentCategoryId = view.kind === 'category' ? view.id : CORE_ID;
 
@@ -280,7 +283,7 @@ export default function App() {
         ) : (
           <Board
             words={boardWords}
-            columns={view.kind === 'core' && !query ? CORE_COLUMNS : settings.columns}
+            columns={columns}
             settings={settings}
             categoryColor={activeCategory?.color}
             editMode={editMode && !query}
