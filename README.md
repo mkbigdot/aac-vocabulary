@@ -64,6 +64,34 @@ relative, so subdirectories work). The included GitHub Actions workflow builds e
 publishes `main` to GitHub Pages once Pages is enabled for the repository
 (Settings → Pages → Source: GitHub Actions).
 
+## Building the iOS app
+
+The Capacitor wrapper packages the existing React app as a native iPhone/iPad app. The native iOS
+project is kept in `ios/`, while the web source remains unchanged.
+
+Requirements:
+
+- macOS with the current Xcode release
+- An Apple Developer Program membership
+- A unique App ID matching `com.mkbigdot.talkboard`
+
+Install dependencies and open the app in Xcode:
+
+```bash
+npm install
+npm run ios:open
+```
+
+After changing the React app, run `npm run ios:sync` to build it and copy the updated `dist/` files
+into the native project. In Xcode, select the `App` target and configure your development team under
+**Signing & Capabilities**. Test speech, local storage, offline use, rotation, and microphone behavior
+on a real iPhone and iPad before archiving.
+
+For TestFlight/App Store delivery, choose a generic iOS device as the run destination, then use
+**Product → Archive → Distribute App → App Store Connect**. The final App Store listing also needs a
+1024×1024 icon, device screenshots, support and privacy-policy URLs, age rating, and App Privacy
+answers.
+
 ## Using it on a tablet
 
 1. Open the deployed URL in the tablet browser.

@@ -1,4 +1,4 @@
-import type { Settings } from '../types';
+import type { AppLanguage, Settings } from '../types';
 
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined;
 
@@ -10,6 +10,30 @@ export function listVoices(): SpeechSynthesisVoice[] {
 
 /** Voice names shipped by iOS, Android, Windows and Chrome for Indian English male speakers. */
 const BOY_NAMES = ['rishi', 'ravi', 'hemant', 'prabhat', 'madhur', 'male'];
+
+export const speechLocales: Record<AppLanguage, string> = {
+  en: 'en-US',
+  es: 'es-US',
+  te: 'te-IN',
+  hi: 'hi-IN',
+  ta: 'ta-IN',
+  kn: 'kn-IN',
+  ru: 'ru-RU',
+  de: 'de-DE',
+  it: 'it-IT',
+  zh: 'zh-CN',
+  bn: 'bn-IN',
+  gu: 'gu-IN',
+  mr: 'mr-IN',
+  ar: 'ar-SA',
+  fr: 'fr-FR',
+  pt: 'pt-BR',
+  ur: 'ur-PK',
+  pa: 'pa-IN',
+  ml: 'ml-IN',
+  id: 'id-ID',
+  ko: 'ko-KR',
+};
 
 function score(voice: SpeechSynthesisVoice): number {
   const lang = voice.lang.replace('_', '-').toLowerCase();
@@ -57,10 +81,15 @@ export function speak(text: string, settings: Settings, onEnd?: () => void): voi
   if (synth.speaking || synth.pending) synth.cancel();
   if (synth.paused) synth.resume();
   const utterance = new SpeechSynthesisUtterance(pronounce(text));
-  const voice = settings.voiceURI ? listVoices().find((v) => v.voiceURI === settings.voiceURI) : undefined;
+  const locale = speechLocales[settings.language];
+  const voice = settings.voiceURI
+    ? listVoices().find((v) => v.voiceURI === settings.voiceURI)
+    : listVoices().find((v) => v.lang.replace('_', '-').toLowerCase() === locale.toLowerCase());
   if (voice) {
     utterance.voice = voice;
     utterance.lang = voice.lang;
+  } else {
+    utterance.lang = locale;
   }
   utterance.rate = settings.rate;
   utterance.pitch = settings.pitch;

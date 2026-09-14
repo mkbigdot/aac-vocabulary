@@ -4,6 +4,7 @@ const KEY = 'aac-vocabulary:v1';
 
 export const defaultSettings: Settings = {
   childName: 'Karthik',
+  language: 'en',
   voiceURI: null,
   rate: 0.95,
   pitch: 1,

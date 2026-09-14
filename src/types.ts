@@ -13,6 +13,29 @@ export type PartOfSpeech =
   | 'number'
   | 'letter';
 
+export type AppLanguage =
+  | 'en'
+  | 'es'
+  | 'te'
+  | 'hi'
+  | 'ta'
+  | 'kn'
+  | 'ru'
+  | 'de'
+  | 'it'
+  | 'zh'
+  | 'bn'
+  | 'gu'
+  | 'mr'
+  | 'ar'
+  | 'fr'
+  | 'pt'
+  | 'ur'
+  | 'pa'
+  | 'ml'
+  | 'id'
+  | 'ko';
+
 export interface Word {
   id: string;
   label: string;
@@ -35,6 +58,8 @@ export interface Category {
 export interface Settings {
   /** The child's name, used to greet them and as a button for saying their own name. */
   childName: string;
+  /** Language used for built-in labels and speech. */
+  language: AppLanguage;
   voiceURI: string | null;
   rate: number;
   pitch: number;

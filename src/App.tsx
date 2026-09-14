@@ -10,6 +10,7 @@ import { WordEditor } from './components/WordEditor';
 import { defaultCategories } from './data/categories';
 import { CORE_COLUMNS, coreWords } from './data/core';
 import { correctSentence } from './lib/grammar';
+import { localizeCategory, localizeWord, uiText } from './lib/i18n';
 import { applyEnding, type Ending } from './lib/morphology';
 import { moveInOrder, sortByOrder } from './lib/order';
 import { useDragReorder } from './lib/useDragReorder';
@@ -52,6 +53,15 @@ export default function App() {
     document.body.classList.toggle('high-contrast', settings.highContrast);
   }, [settings.highContrast]);
 
+  useEffect(() => {
+    const rtl = settings.language === 'ar' || settings.language === 'ur';
+    document.documentElement.lang = settings.language;
+    document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+    return () => {
+      document.documentElement.dir = 'ltr';
+    };
+  }, [settings.language]);
+
   const categories: Category[] = useMemo(() => {
     const hidden = new Set(state.hiddenWordIds);
     const withCustom = (category: Category): Category => ({
@@ -61,8 +71,10 @@ export default function App() {
         state.wordOrder[category.id],
       ),
     });
-    return sortByOrder([...defaultCategories, ...state.customCategories], state.categoryOrder).map(withCustom);
-  }, [state.categoryOrder, state.customCategories, state.customWords, state.hiddenWordIds, state.wordOrder]);
+    return sortByOrder([...defaultCategories, ...state.customCategories], state.categoryOrder)
+      .map(withCustom)
+      .map((category) => localizeCategory(category, settings.language));
+  }, [settings.language, state.categoryOrder, state.customCategories, state.customWords, state.hiddenWordIds, state.wordOrder]);
 
   const core: Word[] = useMemo(() => {
     const hidden = new Set(state.hiddenWordIds);
@@ -71,8 +83,8 @@ export default function App() {
     return sortByOrder(
       [...nameWord, ...coreWords, ...(state.customWords[CORE_ID] ?? [])].filter((word) => !hidden.has(word.id)),
       state.wordOrder[CORE_ID],
-    );
-  }, [settings.childName, state.customWords, state.hiddenWordIds, state.wordOrder]);
+    ).map((word) => localizeWord(word, settings.language));
+  }, [settings.childName, settings.language, state.customWords, state.hiddenWordIds, state.wordOrder]);
 
   const allWords: Word[] = useMemo(
     () => [...core, ...categories.flatMap((category) => category.words)],
@@ -93,7 +105,7 @@ export default function App() {
   const activeCategory = view.kind === 'category' ? categories.find((c) => c.id === view.id) : undefined;
 
   const plainText = sentence.map((item) => item.form ?? item.word.speak ?? item.word.label).join(' ');
-  const spokenText = settings.autoGrammar ? correctSentence(sentence) : plainText;
+  const spokenText = settings.autoGrammar && settings.language === 'en' ? correctSentence(sentence) : plainText;
 
   const speakText = (text: string) => speak(text, settings);
 
@@ -220,7 +232,7 @@ export default function App() {
             setView({ kind: 'core' });
           }}
         >
-          🗣️ Core
+          🗣️ {uiText('core', settings.language)}
         </button>
         <button
           type="button"
@@ -230,7 +242,7 @@ export default function App() {
             setView({ kind: 'recent' });
           }}
         >
-          🕘 Recent
+          🕘 {uiText('recent', settings.language)}
         </button>
         {categories.map((category) => (
           <button
@@ -261,23 +273,25 @@ export default function App() {
             setView({ kind: 'spell' });
           }}
         >
-          🔤 Spell
+          🔤 {uiText('spell', settings.language)}
         </button>
-        <button
-          type="button"
-          className={view.kind === 'buddy' ? 'active' : ''}
-          onClick={() => {
-            setQuery('');
-            setView({ kind: 'buddy' });
-          }}
-        >
-          🤖 Buddy
-        </button>
+        {settings.language === 'en' && (
+          <button
+            type="button"
+            className={view.kind === 'buddy' ? 'active' : ''}
+            onClick={() => {
+              setQuery('');
+              setView({ kind: 'buddy' });
+            }}
+          >
+            🤖 Buddy
+          </button>
+        )}
         <input
           className="search"
           type="search"
           value={query}
-          placeholder="Search all words…"
+          placeholder={uiText('search', settings.language)}
           onChange={(event) => setQuery(event.target.value)}
         />
         <button
@@ -286,14 +300,14 @@ export default function App() {
           title="Add, edit or drag buttons and tabs into the order you want"
           onClick={() => setEditMode((on) => !on)}
         >
-          ✏️ Edit
+          ✏️ {uiText('edit', settings.language)}
         </button>
         <button type="button" onClick={() => setSettingsOpen(true)}>
-          ⚙️ Settings
+          ⚙️ {uiText('settings', settings.language)}
         </button>
       </nav>
 
-      <EndingBar disabled={sentence.length === 0} onApply={handleEnding} />
+      {settings.language === 'en' && <EndingBar disabled={sentence.length === 0} onApply={handleEnding} />}
 
       <main>
         {!speechSupported && (
@@ -342,7 +356,14 @@ export default function App() {
         <SettingsPanel
           settings={settings}
           visits={state.visits}
-          onChange={(next) => setState((current) => ({ ...current, settings: next }))}
+          onChange={(next) => {
+            if (next.language !== settings.language) {
+              setSentence([]);
+              setQuery('');
+              setView({ kind: 'core' });
+            }
+            setState((current) => ({ ...current, settings: next }));
+          }}
           onClose={() => setSettingsOpen(false)}
           onExport={() => {
             const blob = new Blob([exportState(state)], { type: 'application/json' });

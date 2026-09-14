@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import type { Settings } from '../types';
 import { listVoices, onVoicesChanged, pickIndianBoyVoice, sortedVoices, speak, speechSupported } from '../lib/speech';
 import { defaultSettings } from '../lib/storage';
+import { languageNames, translate } from '../lib/i18n';
+import type { AppLanguage } from '../types';
 
 interface Props {
   settings: Settings;
@@ -24,6 +26,9 @@ export function SettingsPanel({ settings, visits, onChange, onClose, onExport, o
   }, []);
 
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => onChange({ ...settings, [key]: value });
+
+  const setLanguage = (language: AppLanguage) =>
+    onChange({ ...settings, language, voiceURI: null, autoGrammar: language === 'en' });
 
   /** Indian English voice, raised pitch and a calmer speed for a young boy. */
   const useIndianBoyVoice = () =>
@@ -64,6 +69,17 @@ export function SettingsPanel({ settings, visits, onChange, onClose, onExport, o
           placeholder="e.g. Arjun"
           onChange={(event) => set('childName', event.target.value)}
         />
+      </label>
+
+      <label>
+        Language / Idioma / భాష
+        <select value={settings.language} onChange={(event) => setLanguage(event.target.value as AppLanguage)}>
+          {Object.entries(languageNames).map(([code, name]) => (
+            <option key={code} value={code}>
+              {name}
+            </option>
+          ))}
+        </select>
       </label>
 
       <label>
@@ -133,7 +149,12 @@ export function SettingsPanel({ settings, visits, onChange, onClose, onExport, o
         🧒 Indian boy voice
       </button>
 
-      <button type="button" onClick={() => speak('Hello, this is my voice.', settings)}>
+      <button
+        type="button"
+        onClick={() =>
+          speak(translate('hello', settings.language), settings)
+        }
+      >
         🔊 Test voice
       </button>
 
