@@ -92,6 +92,34 @@ For TestFlight/App Store delivery, choose a generic iOS device as the run destin
 1024×1024 icon, device screenshots, support and privacy-policy URLs, age rating, and App Privacy
 answers.
 
+## Building the Android app
+
+The Capacitor Android project is kept in `android/` and uses the same React application, local
+profiles, offline storage, vocabulary and language packs as the web and iOS versions.
+
+Requirements:
+
+- Android Studio with the current Android SDK and Java toolchain
+- A Google Play Console developer account
+- The application ID `com.mkbigdot.talkboard`
+
+Install dependencies and open the native project:
+
+```bash
+npm install
+npm run android:open
+```
+
+After changing the React app, run `npm run android:sync` to rebuild and copy the web application into
+the Android project. Test speech, microphone access, offline use, local profiles, device rotation and
+all required languages on physical phones and tablets.
+
+For Google Play delivery, open the project in Android Studio and choose **Build → Generate Signed App
+Bundle or APK → Android App Bundle**. Keep the signing key in a secure location; every future update
+must use the same key. Upload the resulting `.aab` file to an internal testing release in Play Console
+before submitting it for production. The store listing also needs screenshots, descriptions, contact
+details, a privacy-policy URL, content rating, target audience and Data safety answers.
+
 ## Using it on a tablet
 
 1. Open the deployed URL in the tablet browser.

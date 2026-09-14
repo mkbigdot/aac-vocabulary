@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { Settings } from '../types';
 import { listVoices, onVoicesChanged, pickIndianBoyVoice, sortedVoices, speak, speechSupported } from '../lib/speech';
-import { defaultSettings } from '../lib/storage';
+import { defaultSettings, type LocalAccount } from '../lib/storage';
 import { languageNames, translate } from '../lib/i18n';
 import type { AppLanguage } from '../types';
 
 interface Props {
+  accounts: LocalAccount[];
+  activeAccountId: string;
   settings: Settings;
   /** How many times the app has been opened on this device. */
   visits: number;
@@ -14,10 +16,27 @@ interface Props {
   onExport: () => void;
   onImport: (file: File) => void;
   onReset: () => void;
+  onSwitchAccount: (accountId: string) => void;
+  onCreateAccount: (name: string) => void;
+  onDeleteAccount: () => void;
 }
 
-export function SettingsPanel({ settings, visits, onChange, onClose, onExport, onImport, onReset }: Props) {
+export function SettingsPanel({
+  accounts,
+  activeAccountId,
+  settings,
+  visits,
+  onChange,
+  onClose,
+  onExport,
+  onImport,
+  onReset,
+  onSwitchAccount,
+  onCreateAccount,
+  onDeleteAccount,
+}: Props) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>(listVoices());
+  const [newProfileName, setNewProfileName] = useState('');
 
   useEffect(() => {
     const update = () => setVoices(listVoices());
@@ -60,6 +79,43 @@ export function SettingsPanel({ settings, visits, onChange, onClose, onExport, o
           ✕
         </button>
       </header>
+
+      <section className="profile-settings" aria-labelledby="profile-heading">
+        <h3 id="profile-heading">Local user profile</h3>
+        <label>
+          Current profile
+          <select value={activeAccountId} onChange={(event) => onSwitchAccount(event.target.value)}>
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="profile-create">
+          <input
+            type="text"
+            value={newProfileName}
+            placeholder="New profile name"
+            aria-label="New profile name"
+            onChange={(event) => setNewProfileName(event.target.value)}
+          />
+          <button
+            type="button"
+            disabled={!newProfileName.trim()}
+            onClick={() => {
+              onCreateAccount(newProfileName);
+              setNewProfileName('');
+            }}
+          >
+            ➕ Add profile
+          </button>
+        </div>
+        <button type="button" className="danger" disabled={accounts.length <= 1} onClick={onDeleteAccount}>
+          Delete current profile
+        </button>
+        <p className="settings-note">Each profile keeps separate settings and vocabulary on this device.</p>
+      </section>
 
       <label>
         Child's name

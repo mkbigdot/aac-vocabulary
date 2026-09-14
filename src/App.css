@@ -444,6 +444,25 @@ body.high-contrast .word-button {
   margin: 0;
 }
 
+.profile-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+}
+
+.profile-settings h3 {
+  margin: 0;
+}
+
+.profile-create {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
 .settings-panel label {
   display: flex;
   flex-direction: column;

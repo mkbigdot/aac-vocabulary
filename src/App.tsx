@@ -16,7 +16,20 @@ import { moveInOrder, sortByOrder } from './lib/order';
 import { useDragReorder } from './lib/useDragReorder';
 import { useFittingColumns } from './lib/useFittingColumns';
 import { speak, speechSupported, stopSpeaking } from './lib/speech';
-import { emptyState, exportState, importState, loadState, saveState, type PersistedState } from './lib/storage';
+import {
+  createAccount,
+  deleteAccount,
+  emptyState,
+  exportState,
+  getActiveAccountId,
+  importState,
+  loadAccounts,
+  loadState,
+  saveState,
+  setActiveAccountId,
+  type LocalAccount,
+  type PersistedState,
+} from './lib/storage';
 import type { Category, PartOfSpeech, SentenceItem, Word } from './types';
 
 const CORE_ID = 'core';
@@ -30,7 +43,9 @@ type View =
   | { kind: 'buddy' };
 
 export default function App() {
-  const [state, setState] = useState<PersistedState>(() => loadState());
+  const [accountId, setAccountId] = useState(() => getActiveAccountId());
+  const [accounts, setAccounts] = useState<LocalAccount[]>(() => loadAccounts());
+  const [state, setState] = useState<PersistedState>(() => loadState(accountId));
   const [sentence, setSentence] = useState<SentenceItem[]>([]);
   const [view, setView] = useState<View>({ kind: 'core' });
   const [query, setQuery] = useState('');
@@ -40,7 +55,7 @@ export default function App() {
 
   const { settings } = state;
 
-  useEffect(() => saveState(state), [state]);
+  useEffect(() => saveState(state, accountId), [accountId, state]);
 
   const counted = useRef(false);
   useEffect(() => {
@@ -354,6 +369,8 @@ export default function App() {
 
       {settingsOpen && (
         <SettingsPanel
+          accounts={accounts}
+          activeAccountId={accountId}
           settings={settings}
           visits={state.visits}
           onChange={(next) => {
@@ -383,6 +400,36 @@ export default function App() {
           }}
           onReset={() => {
             if (confirm('Reset all custom words and settings?')) setState(emptyState);
+          }}
+          onSwitchAccount={(nextId) => {
+            if (nextId === accountId) return;
+            saveState(state, accountId);
+            setActiveAccountId(nextId);
+            setAccountId(nextId);
+            setState(loadState(nextId));
+            setSentence([]);
+            setQuery('');
+            setView({ kind: 'core' });
+          }}
+          onCreateAccount={(name) => {
+            const account = createAccount(name);
+            setAccounts(loadAccounts());
+            setActiveAccountId(account.id);
+            setAccountId(account.id);
+            setState(loadState(account.id));
+            setSentence([]);
+            setQuery('');
+            setView({ kind: 'core' });
+          }}
+          onDeleteAccount={() => {
+            if (!confirm('Delete this local profile and all of its saved settings?')) return;
+            const nextId = deleteAccount(accountId);
+            setAccounts(loadAccounts());
+            setAccountId(nextId);
+            setState(loadState(nextId));
+            setSentence([]);
+            setQuery('');
+            setView({ kind: 'core' });
           }}
         />
       )}
