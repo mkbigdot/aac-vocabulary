@@ -239,87 +239,97 @@ export default function App() {
       />
 
       <nav className="nav-bar">
-        <button
-          type="button"
-          className={view.kind === 'core' && !query ? 'active' : ''}
-          onClick={() => {
-            setQuery('');
-            setView({ kind: 'core' });
-          }}
-        >
-          🗣️ {uiText('core', settings.language)}
-        </button>
-        <button
-          type="button"
-          className={view.kind === 'recent' ? 'active' : ''}
-          onClick={() => {
-            setQuery('');
-            setView({ kind: 'recent' });
-          }}
-        >
-          🕘 {uiText('recent', settings.language)}
-        </button>
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            type="button"
-            className={[
-              view.kind === 'category' && view.id === category.id ? 'active' : '',
-              categoryDrag.dragId === category.id ? 'dragging' : '',
-              categoryDrag.dragId && categoryDrag.overId === category.id ? 'over' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-            {...categoryDrag.handlers(category.id)}
-            onClick={() => {
-              if (editMode && categoryDrag.wasDragged()) return;
-              setQuery('');
-              setView({ kind: 'category', id: category.id });
-            }}
-          >
-            <span aria-hidden="true">{category.symbol}</span> {category.name}
-          </button>
-        ))}
-        <button
-          type="button"
-          className={view.kind === 'spell' ? 'active' : ''}
-          onClick={() => {
-            setQuery('');
-            setView({ kind: 'spell' });
-          }}
-        >
-          🔤 {uiText('spell', settings.language)}
-        </button>
-        {settings.language === 'en' && (
+        <div className="nav-choices">
           <button
             type="button"
-            className={view.kind === 'buddy' ? 'active' : ''}
+            className={view.kind === 'core' && !query ? 'active' : ''}
             onClick={() => {
               setQuery('');
-              setView({ kind: 'buddy' });
+              setView({ kind: 'core' });
             }}
           >
-            🤖 Buddy
+            <span aria-hidden="true">🗣️</span>
+            <span className="nav-label">{uiText('core', settings.language)}</span>
           </button>
-        )}
-        <input
-          className="search"
-          type="search"
-          value={query}
-          placeholder={uiText('search', settings.language)}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-        <button
-          type="button"
-          className={editMode ? 'active' : ''}
-          title="Add, edit or drag buttons and tabs into the order you want"
-          onClick={() => setEditMode((on) => !on)}
-        >
-          ✏️ {uiText('edit', settings.language)}
-        </button>
-        <button type="button" onClick={() => setSettingsOpen(true)}>
-          ⚙️ {uiText('settings', settings.language)}
-        </button>
+          <button
+            type="button"
+            className={view.kind === 'recent' ? 'active' : ''}
+            onClick={() => {
+              setQuery('');
+              setView({ kind: 'recent' });
+            }}
+          >
+            <span aria-hidden="true">🕘</span>
+            <span className="nav-label">{uiText('recent', settings.language)}</span>
+          </button>
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              className={[
+                view.kind === 'category' && view.id === category.id ? 'active' : '',
+                categoryDrag.dragId === category.id ? 'dragging' : '',
+                categoryDrag.dragId && categoryDrag.overId === category.id ? 'over' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              {...categoryDrag.handlers(category.id)}
+              onClick={() => {
+                if (editMode && categoryDrag.wasDragged()) return;
+                setQuery('');
+                setView({ kind: 'category', id: category.id });
+              }}
+            >
+              <span aria-hidden="true">{category.symbol}</span>
+              <span className="nav-label">{category.name}</span>
+            </button>
+          ))}
+          <button
+            type="button"
+            className={view.kind === 'spell' ? 'active' : ''}
+            onClick={() => {
+              setQuery('');
+              setView({ kind: 'spell' });
+            }}
+          >
+            <span aria-hidden="true">🔤</span>
+            <span className="nav-label">{uiText('spell', settings.language)}</span>
+          </button>
+          {settings.language === 'en' && (
+            <button
+              type="button"
+              className={view.kind === 'buddy' ? 'active' : ''}
+              onClick={() => {
+                setQuery('');
+                setView({ kind: 'buddy' });
+              }}
+            >
+              <span aria-hidden="true">🤖</span>
+              <span className="nav-label">Buddy</span>
+            </button>
+          )}
+        </div>
+
+        <div className="nav-tools">
+          <input
+            className="search"
+            type="search"
+            value={query}
+            placeholder={uiText('search', settings.language)}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          <button
+            type="button"
+            className={editMode ? 'active' : ''}
+            title="Add, edit or drag buttons and tabs into the order you want"
+            onClick={() => setEditMode((on) => !on)}
+          >
+            ✏️ {uiText('edit', settings.language)}
+          </button>
+          <button type="button" onClick={() => setSettingsOpen(true)}>
+            ⚙️ {uiText('settings', settings.language)}
+          </button>
+        </div>
       </nav>
 
       {settings.language === 'en' && <EndingBar disabled={sentence.length === 0} onApply={handleEnding} />}
